@@ -1,4 +1,4 @@
-package cn.lj.pdl.model.dto.user;
+package cn.lj.pdl.dto.user;
 
 import lombok.Data;
 

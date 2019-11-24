@@ -2,12 +2,12 @@ package cn.lj.pdl.controller;
 
 import cn.lj.pdl.constant.TestConstant;
 import cn.lj.pdl.exception.BizExceptionEnum;
-import cn.lj.pdl.model.Body;
+import cn.lj.pdl.dto.Body;
 import cn.lj.pdl.model.UserDO;
-import cn.lj.pdl.model.dto.user.UserLoginRequest;
-import cn.lj.pdl.model.dto.user.UserLoginResponse;
-import cn.lj.pdl.model.dto.user.UserRegisterRequest;
-import cn.lj.pdl.model.dto.user.UserRegisterResponse;
+import cn.lj.pdl.dto.user.UserLoginRequest;
+import cn.lj.pdl.dto.user.UserLoginResponse;
+import cn.lj.pdl.dto.user.UserRegisterRequest;
+import cn.lj.pdl.dto.user.UserRegisterResponse;
 import cn.lj.pdl.repository.UserRepository;
 import cn.lj.pdl.service.UserService;
 import com.alibaba.fastjson.JSON;

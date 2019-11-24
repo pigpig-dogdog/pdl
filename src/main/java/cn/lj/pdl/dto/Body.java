@@ -1,4 +1,4 @@
-package cn.lj.pdl.model;
+package cn.lj.pdl.dto;
 
 import cn.lj.pdl.exception.BizException;
 import cn.lj.pdl.exception.BizExceptionEnum;

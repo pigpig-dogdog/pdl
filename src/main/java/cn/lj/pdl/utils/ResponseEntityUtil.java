@@ -2,7 +2,7 @@ package cn.lj.pdl.utils;
 
 import cn.lj.pdl.exception.BizException;
 import cn.lj.pdl.exception.BizExceptionEnum;
-import cn.lj.pdl.model.Body;
+import cn.lj.pdl.dto.Body;
 import org.springframework.http.ResponseEntity;
 
 /**

@@ -1,6 +1,6 @@
 package cn.lj.pdl.exception;
 
-import cn.lj.pdl.model.Body;
+import cn.lj.pdl.dto.Body;
 import cn.lj.pdl.utils.ResponseEntityUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

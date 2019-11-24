@@ -1,9 +1,9 @@
 package cn.lj.pdl.service;
 
-import cn.lj.pdl.model.dto.user.UserLoginRequest;
-import cn.lj.pdl.model.dto.user.UserLoginResponse;
-import cn.lj.pdl.model.dto.user.UserRegisterRequest;
-import cn.lj.pdl.model.dto.user.UserRegisterResponse;
+import cn.lj.pdl.dto.user.UserLoginRequest;
+import cn.lj.pdl.dto.user.UserLoginResponse;
+import cn.lj.pdl.dto.user.UserRegisterRequest;
+import cn.lj.pdl.dto.user.UserRegisterResponse;
 
 /**
  * @author luojian
