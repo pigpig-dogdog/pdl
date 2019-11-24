@@ -12,7 +12,6 @@ import cn.lj.pdl.repository.UserRepository;
 import cn.lj.pdl.service.UserService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
-import com.sun.tools.javac.util.Pair;
 import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Before;
@@ -21,6 +20,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -55,8 +55,8 @@ public class UserControllerTest {
     @Before
     public void before() {
         Pair<String, String> pair = registerTestUser();
-        testUsername = pair.fst;
-        testUserPassword = pair.snd;
+        testUsername = pair.getFirst();
+        testUserPassword = pair.getSecond();
         System.out.println(String.format("Before: 测试账号添加成功!(账号:%s, 密码:%s)", testUsername, testUserPassword));
     }
 
@@ -267,7 +267,7 @@ public class UserControllerTest {
         request.setUsername(username);
         request.setPassword(password);
         userService.register(request);
-        return new Pair<>(username, password);
+        return Pair.of(username, password);
     }
 
     private void removeTestUser(String testUsername) {
