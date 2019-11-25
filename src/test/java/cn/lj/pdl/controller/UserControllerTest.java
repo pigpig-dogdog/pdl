@@ -1,15 +1,12 @@
 package cn.lj.pdl.controller;
 
-import cn.lj.pdl.constant.TestConstant;
 import cn.lj.pdl.dto.Body;
 import cn.lj.pdl.dto.user.UserLoginRequest;
 import cn.lj.pdl.dto.user.UserLoginResponse;
 import cn.lj.pdl.dto.user.UserRegisterRequest;
 import cn.lj.pdl.dto.user.UserRegisterResponse;
 import cn.lj.pdl.exception.BizExceptionEnum;
-import cn.lj.pdl.model.UserDO;
-import cn.lj.pdl.repository.UserRepository;
-import cn.lj.pdl.service.UserService;
+import cn.lj.pdl.utils.TestUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import org.assertj.core.api.Assertions;
@@ -27,8 +24,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
 
-import java.util.UUID;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
@@ -43,18 +38,12 @@ public class UserControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private UserRepository userRepository;
-
     private String testUsername;
     private String testUserPassword;
 
     @Before
     public void before() {
-        Pair<String, String> pair = registerTestUser();
+        Pair<String, String> pair = TestUtil.registerTestUser();
         testUsername = pair.getFirst();
         testUserPassword = pair.getSecond();
         System.out.println(String.format("Before: 测试账号添加成功!(账号:%s, 密码:%s)", testUsername, testUserPassword));
@@ -62,7 +51,7 @@ public class UserControllerTest {
 
     @After
     public void after() {
-        removeTestUser(testUsername);
+        TestUtil.removeTestUser(testUsername);
         System.out.println(String.format("After: 测试账号删除成功!(账号:%s, 密码:%s)", testUsername, testUserPassword));
     }
 
@@ -76,8 +65,8 @@ public class UserControllerTest {
 
         // 设置http请求包
         RequestBuilder requestBuilder = post("/user/login")
-                .contentType(TestConstant.APPLICATION_JSON_UTF8) // 请求的Content-Type
-                .accept(TestConstant.APPLICATION_JSON_UTF8)      // 响应的Content-Type
+                .contentType(TestUtil.APPLICATION_JSON_UTF8) // 请求的Content-Type
+                .accept(TestUtil.APPLICATION_JSON_UTF8)      // 响应的Content-Type
                 .content(content);
 
         // 模拟http请求，并获取http响应包
@@ -103,8 +92,8 @@ public class UserControllerTest {
 
         // 设置http请求包
         RequestBuilder requestBuilder = post("/user/login")
-                .contentType(TestConstant.APPLICATION_JSON_UTF8) // 请求的Content-Type
-                .accept(TestConstant.APPLICATION_JSON_UTF8)      // 响应的Content-Type
+                .contentType(TestUtil.APPLICATION_JSON_UTF8) // 请求的Content-Type
+                .accept(TestUtil.APPLICATION_JSON_UTF8)      // 响应的Content-Type
                 .content(content);
 
         // 模拟http请求，并获取http响应包
@@ -130,8 +119,8 @@ public class UserControllerTest {
 
         // 设置http请求包
         RequestBuilder requestBuilder = post("/user/login")
-                .contentType(TestConstant.APPLICATION_JSON_UTF8) // 请求的Content-Type
-                .accept(TestConstant.APPLICATION_JSON_UTF8)      // 响应的Content-Type
+                .contentType(TestUtil.APPLICATION_JSON_UTF8) // 请求的Content-Type
+                .accept(TestUtil.APPLICATION_JSON_UTF8)      // 响应的Content-Type
                 .content(content);
 
         // 模拟http请求，并获取http响应包
@@ -151,14 +140,14 @@ public class UserControllerTest {
     public void testLoginFailedUsernameNotExist() throws Exception {
         // 请求参数
         UserLoginRequest param = new UserLoginRequest();
-        param.setUsername(generateUUID());
+        param.setUsername(TestUtil.generateUUID());
         param.setPassword(testUserPassword);
         String content = JSON.toJSONString(param);
 
         // 设置http请求包
         RequestBuilder requestBuilder = post("/user/login")
-                .contentType(TestConstant.APPLICATION_JSON_UTF8) // 请求的Content-Type
-                .accept(TestConstant.APPLICATION_JSON_UTF8)      // 响应的Content-Type
+                .contentType(TestUtil.APPLICATION_JSON_UTF8) // 请求的Content-Type
+                .accept(TestUtil.APPLICATION_JSON_UTF8)      // 响应的Content-Type
                 .content(content);
 
         // 模拟http请求，并获取http响应包
@@ -184,8 +173,8 @@ public class UserControllerTest {
 
         // 设置http请求包
         RequestBuilder requestBuilder = post("/user/login")
-                .contentType(TestConstant.APPLICATION_JSON_UTF8) // 请求的Content-Type
-                .accept(TestConstant.APPLICATION_JSON_UTF8)      // 响应的Content-Type
+                .contentType(TestUtil.APPLICATION_JSON_UTF8) // 请求的Content-Type
+                .accept(TestUtil.APPLICATION_JSON_UTF8)      // 响应的Content-Type
                 .content(content);
 
         // 模拟http请求，并获取http响应包
@@ -205,14 +194,14 @@ public class UserControllerTest {
     public void testRegisterSuccess() throws Exception {
         // 请求参数
         UserRegisterRequest param = new UserRegisterRequest();
-        param.setUsername(generateUUID());
-        param.setPassword(generateUUID());
+        param.setUsername(TestUtil.generateUUID());
+        param.setPassword(TestUtil.generateUUID());
         String content = JSON.toJSONString(param);
 
         // 设置http请求包
         RequestBuilder requestBuilder = post("/user/register")
-                .contentType(TestConstant.APPLICATION_JSON_UTF8) // 请求的Content-Type
-                .accept(TestConstant.APPLICATION_JSON_UTF8)      // 响应的Content-Type
+                .contentType(TestUtil.APPLICATION_JSON_UTF8) // 请求的Content-Type
+                .accept(TestUtil.APPLICATION_JSON_UTF8)      // 响应的Content-Type
                 .content(content);
 
         // 模拟http请求，并获取http响应包
@@ -238,8 +227,8 @@ public class UserControllerTest {
 
         // 设置http请求包
         RequestBuilder requestBuilder = post("/user/register")
-                .contentType(TestConstant.APPLICATION_JSON_UTF8) // 请求的Content-Type
-                .accept(TestConstant.APPLICATION_JSON_UTF8)      // 响应的Content-Type
+                .contentType(TestUtil.APPLICATION_JSON_UTF8) // 请求的Content-Type
+                .accept(TestUtil.APPLICATION_JSON_UTF8)      // 响应的Content-Type
                 .content(content);
 
         // 模拟http请求，并获取http响应包
@@ -253,26 +242,6 @@ public class UserControllerTest {
         // 校验
         Assertions.assertThat(status).isEqualTo(HttpStatus.BAD_REQUEST.value()); // 校验 status 400 BAD_REQUEST
         Assertions.assertThat(body.getCode()).isEqualTo(BizExceptionEnum.USER_REGISTER_USERNAME_EXIST.getCode()); // 校验错误码
-    }
-
-
-    private String generateUUID() {
-        return UUID.randomUUID().toString().replaceAll("-", "");
-    }
-
-    private Pair<String, String> registerTestUser() {
-        String username = generateUUID();
-        String password = generateUUID();
-        UserRegisterRequest request = new UserRegisterRequest();
-        request.setUsername(username);
-        request.setPassword(password);
-        userService.register(request);
-        return Pair.of(username, password);
-    }
-
-    private void removeTestUser(String testUsername) {
-        UserDO userDO = userRepository.findByUsername(testUsername);
-        userRepository.delete(userDO);
     }
 
 }
