@@ -1,12 +1,12 @@
 package cn.lj.pdl.service.impl;
 
-import cn.lj.pdl.exception.BizException;
-import cn.lj.pdl.exception.BizExceptionEnum;
-import cn.lj.pdl.model.UserDO;
 import cn.lj.pdl.dto.user.UserLoginRequest;
 import cn.lj.pdl.dto.user.UserLoginResponse;
 import cn.lj.pdl.dto.user.UserRegisterRequest;
 import cn.lj.pdl.dto.user.UserRegisterResponse;
+import cn.lj.pdl.exception.BizException;
+import cn.lj.pdl.exception.BizExceptionEnum;
+import cn.lj.pdl.model.UserDO;
 import cn.lj.pdl.repository.UserRepository;
 import cn.lj.pdl.security.JwtTokenProvider;
 import cn.lj.pdl.service.UserService;
@@ -24,17 +24,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserServiceImpl implements UserService {
 
-    private ModelMapper modelMapper;
     private UserRepository userRepository;
     private PasswordEncoder passwordEncoder;
     private JwtTokenProvider jwtTokenProvider;
 
     @Autowired
-    public UserServiceImpl(ModelMapper modelMapper,
-                           UserRepository userRepository,
+    public UserServiceImpl(UserRepository userRepository,
                            PasswordEncoder passwordEncoder,
                            JwtTokenProvider jwtTokenProvider) {
-        this.modelMapper = modelMapper;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
@@ -42,37 +39,43 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserRegisterResponse register(UserRegisterRequest request) {
+        String username = request.getUsername();
+
         // 用户名已存在
-        if (userRepository.existsByUsername(request.getUsername())) {
+        if (userRepository.existsByUsername(username)) {
             throw new BizException(BizExceptionEnum.USER_REGISTER_USERNAME_EXIST);
         }
 
-        UserDO userDO = modelMapper.map(request, UserDO.class);
-        userDO.setPassword(passwordEncoder.encode(userDO.getPassword()));
+        UserDO userDO = new UserDO();
+        userDO.setUsername(username);
+        userDO.setPassword(passwordEncoder.encode(request.getPassword()));
+
         userRepository.save(userDO);
 
-        UserRegisterResponse response = modelMapper.map(userDO, UserRegisterResponse.class);
-        String token = jwtTokenProvider.createBearerToken(request.getUsername());
-        response.setToken(token);
+        UserRegisterResponse response = new UserRegisterResponse();
+        response.setUsername(username);
+        response.setToken(jwtTokenProvider.createBearerToken(username));
         return response;
     }
 
     @Override
     public UserLoginResponse login(UserLoginRequest request) {
+        String username = request.getUsername();
+
         // 用户不存在
-        if (!userRepository.existsByUsername(request.getUsername())) {
+        if (!userRepository.existsByUsername(username)) {
             throw new BizException(BizExceptionEnum.USER_LOGIN_USERNAME_NOT_EXIST);
         }
 
         // 密码不正确
-        UserDO userDO = userRepository.findByUsername(request.getUsername());
+        UserDO userDO = userRepository.findByUsername(username);
         if (!passwordEncoder.matches(request.getPassword(), userDO.getPassword())) {
             throw new BizException(BizExceptionEnum.USER_LOGIN_PASSWORD_ERROR);
         }
 
-        UserLoginResponse response = modelMapper.map(userDO, UserLoginResponse.class);
-        String token = jwtTokenProvider.createBearerToken(request.getUsername());
-        response.setToken(token);
+        UserLoginResponse response = new UserLoginResponse();
+        response.setUsername(username);
+        response.setToken(jwtTokenProvider.createBearerToken(username));
         return response;
     }
 
