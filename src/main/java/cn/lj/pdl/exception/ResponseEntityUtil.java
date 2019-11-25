@@ -1,7 +1,5 @@
-package cn.lj.pdl.utils;
+package cn.lj.pdl.exception;
 
-import cn.lj.pdl.exception.BizException;
-import cn.lj.pdl.exception.BizExceptionEnum;
 import cn.lj.pdl.dto.Body;
 import org.springframework.http.ResponseEntity;
 
@@ -21,13 +19,13 @@ public class ResponseEntityUtil {
         return ResponseEntity.status(e.getHttpStatus()).body(body);
     }
 
-    public static ResponseEntity<Body> buildFail(BizException e, String appendMessage) {
-        Body body = Body.buildFail(e).appendMessage(appendMessage);
+    public static ResponseEntity<Body> buildFail(BizException e, String appendDetailMessage) {
+        Body body = Body.buildFail(e, appendDetailMessage);
         return ResponseEntity.status(e.getHttpStatus()).body(body);
     }
 
-    public static ResponseEntity<Body> buildFail(BizExceptionEnum e, String appendMessage) {
-        Body body = Body.buildFail(e).appendMessage(appendMessage);
+    public static ResponseEntity<Body> buildFail(BizExceptionEnum e, String appendDetailMessage) {
+        Body body = Body.buildFail(e, appendDetailMessage);
         return ResponseEntity.status(e.getHttpStatus()).body(body);
     }
 

@@ -11,7 +11,6 @@ import cn.lj.pdl.repository.UserRepository;
 import cn.lj.pdl.security.JwtTokenProvider;
 import cn.lj.pdl.service.UserService;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

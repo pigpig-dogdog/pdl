@@ -1,7 +1,6 @@
 package cn.lj.pdl.exception;
 
 import cn.lj.pdl.dto.Body;
-import cn.lj.pdl.utils.ResponseEntityUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -63,6 +62,7 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<Body> handleException(Exception e) {
         log.error(e.toString());
+        e.printStackTrace();
         return ResponseEntityUtil.buildFail(BizExceptionEnum.UNDEFINED_ERROR, e.getMessage());
     }
 }

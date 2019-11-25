@@ -18,11 +18,7 @@ public class Body<T> {
     private T data;
 
     public static <T> Body<T> buildSuccess(T data) {
-        return new Body<>(
-                true,
-                BizExceptionEnum.SUCCESS.getMessage(),
-                BizExceptionEnum.SUCCESS.getCode(),
-                data);
+        return new Body<>(true, BizExceptionEnum.SUCCESS.getMessage(), BizExceptionEnum.SUCCESS.getCode(), data);
     }
 
     public static Body buildFail(BizException e) {
@@ -33,8 +29,11 @@ public class Body<T> {
         return new Body<>(false, e.getMessage(), e.getCode(), null);
     }
 
-    public Body appendMessage(String appendMessage) {
-        this.setMessage(this.getMessage() + appendMessage);
-        return this;
+    public static Body buildFail(BizException e, String appendDetailMessage) {
+        return new Body<>(false, e.getMessage() + appendDetailMessage, e.getCode(), null);
+    }
+
+    public static Body buildFail(BizExceptionEnum e, String appendDetailMessage) {
+        return new Body<>(false, e.getMessage() + appendDetailMessage, e.getCode(), null);
     }
 }
