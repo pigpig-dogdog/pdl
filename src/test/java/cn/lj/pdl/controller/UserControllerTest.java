@@ -9,6 +9,7 @@ import cn.lj.pdl.exception.BizExceptionEnum;
 import cn.lj.pdl.utils.TestUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import org.apache.commons.lang3.tuple.Triple;
 import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Before;
@@ -17,7 +18,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -43,9 +43,9 @@ public class UserControllerTest {
 
     @Before
     public void before() {
-        Pair<String, String> pair = TestUtil.registerTestUser();
-        testUsername = pair.getFirst();
-        testUserPassword = pair.getSecond();
+        Triple<String, String, String> triple = TestUtil.registerTestUser();
+        testUsername = triple.getLeft();
+        testUserPassword = triple.getMiddle();
         System.out.println(String.format("Before: 测试账号添加成功!(账号:%s, 密码:%s)", testUsername, testUserPassword));
     }
 

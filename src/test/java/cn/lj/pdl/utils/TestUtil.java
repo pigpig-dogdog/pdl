@@ -1,11 +1,13 @@
 package cn.lj.pdl.utils;
 
 import cn.lj.pdl.dto.user.UserRegisterRequest;
+import cn.lj.pdl.dto.user.UserRegisterResponse;
 import cn.lj.pdl.model.UserDO;
 import cn.lj.pdl.repository.UserRepository;
 import cn.lj.pdl.service.UserService;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
+import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -33,14 +35,14 @@ public class TestUtil {
         return UUID.randomUUID().toString().replaceAll("-", "");
     }
 
-    public static Pair<String, String> registerTestUser() {
+    public static Triple<String, String, String> registerTestUser() {
         String username = generateUUID();
         String password = generateUUID();
         UserRegisterRequest request = new UserRegisterRequest();
         request.setUsername(username);
         request.setPassword(password);
-        userService.register(request);
-        return Pair.of(username, password);
+        UserRegisterResponse response = userService.register(request);
+        return new ImmutableTriple<>(username, password, response.getToken());
     }
 
     public static void removeTestUser(String testUsername) {
