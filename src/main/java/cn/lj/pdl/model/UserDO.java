@@ -24,16 +24,17 @@ public class UserDO {
     private Long id;
 
     @CreatedDate
+    @Column(name = "create_time", nullable = false)
     private Date createTime;
 
     @LastModifiedDate
+    @Column(name = "modify_time", nullable = false)
     private Date modifyTime;
 
-    @Column(unique = true, nullable = false)
+    @Column(name = "username", nullable = false, unique = true)
     private String username;
 
-    @Column(nullable = false)
-    @Size(min = 3, message = "密码长度必须大于 3")
+    @Column(name = "password", nullable = false)
     private String password;
 
 }
