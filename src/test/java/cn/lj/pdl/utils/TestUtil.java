@@ -2,8 +2,8 @@ package cn.lj.pdl.utils;
 
 import cn.lj.pdl.dto.user.UserRegisterRequest;
 import cn.lj.pdl.dto.user.UserRegisterResponse;
+import cn.lj.pdl.mapper.UserMapper;
 import cn.lj.pdl.model.UserDO;
-import cn.lj.pdl.repository.UserRepository;
 import cn.lj.pdl.service.UserService;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
@@ -22,13 +22,13 @@ public class TestUtil {
     public static final String APPLICATION_JSON_UTF8 = "application/json;charset=UTF-8";
 
     private static UserService userService;
-    private static UserRepository userRepository;
+    private static UserMapper userMapper;
 
     @Autowired
     public TestUtil(UserService userService,
-                    UserRepository userRepository) {
+                    UserMapper userMapper) {
         TestUtil.userService = userService;
-        TestUtil.userRepository = userRepository;
+        TestUtil.userMapper = userMapper;
     }
 
     public static String generateUUID() {
@@ -46,8 +46,8 @@ public class TestUtil {
     }
 
     public static void removeTestUser(String testUsername) {
-        UserDO userDO = userRepository.findByUsername(testUsername);
-        userRepository.delete(userDO);
+        UserDO userDO = userMapper.findByUsername(testUsername);
+        userMapper.delete(userDO.getId());
     }
 
 

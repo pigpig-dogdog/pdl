@@ -10,9 +10,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest
 public class RepositoryTest {
 
-    @Autowired
-    private UserRepository userRepository;
-
     @Test
     public void test() {
     }

@@ -6,8 +6,8 @@ import cn.lj.pdl.dto.user.UserRegisterRequest;
 import cn.lj.pdl.dto.user.UserRegisterResponse;
 import cn.lj.pdl.exception.BizException;
 import cn.lj.pdl.exception.BizExceptionEnum;
+import cn.lj.pdl.mapper.UserMapper;
 import cn.lj.pdl.model.UserDO;
-import cn.lj.pdl.repository.UserRepository;
 import cn.lj.pdl.security.JwtTokenProvider;
 import cn.lj.pdl.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -23,15 +23,15 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserServiceImpl implements UserService {
 
-    private UserRepository userRepository;
+    private UserMapper userMapper;
     private PasswordEncoder passwordEncoder;
     private JwtTokenProvider jwtTokenProvider;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository,
+    public UserServiceImpl(UserMapper userMapper,
                            PasswordEncoder passwordEncoder,
                            JwtTokenProvider jwtTokenProvider) {
-        this.userRepository = userRepository;
+        this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
     }
@@ -41,7 +41,7 @@ public class UserServiceImpl implements UserService {
         String username = request.getUsername();
 
         // 用户名已存在
-        if (userRepository.existsByUsername(username)) {
+        if (userMapper.existsByUsername(username)) {
             throw new BizException(BizExceptionEnum.USER_REGISTER_USERNAME_EXIST);
         }
 
@@ -49,7 +49,7 @@ public class UserServiceImpl implements UserService {
         userDO.setUsername(username);
         userDO.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        userRepository.save(userDO);
+        userMapper.insert(userDO);
 
         UserRegisterResponse response = new UserRegisterResponse();
         response.setUsername(username);
@@ -62,12 +62,12 @@ public class UserServiceImpl implements UserService {
         String username = request.getUsername();
 
         // 用户不存在
-        if (!userRepository.existsByUsername(username)) {
+        if (!userMapper.existsByUsername(username)) {
             throw new BizException(BizExceptionEnum.USER_LOGIN_USERNAME_NOT_EXIST);
         }
 
         // 密码不正确
-        UserDO userDO = userRepository.findByUsername(username);
+        UserDO userDO = userMapper.findByUsername(username);
         if (!passwordEncoder.matches(request.getPassword(), userDO.getPassword())) {
             throw new BizException(BizExceptionEnum.USER_LOGIN_PASSWORD_ERROR);
         }

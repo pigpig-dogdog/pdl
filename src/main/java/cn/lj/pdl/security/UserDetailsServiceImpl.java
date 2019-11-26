@@ -1,7 +1,7 @@
 package cn.lj.pdl.security;
 
+import cn.lj.pdl.mapper.UserMapper;
 import cn.lj.pdl.model.UserDO;
-import cn.lj.pdl.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -15,16 +15,16 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-    private UserRepository userRepository;
+    private UserMapper userMapper;
 
     @Autowired
-    public UserDetailsServiceImpl(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserDetailsServiceImpl(UserMapper userMapper) {
+        this.userMapper = userMapper;
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        final UserDO user = userRepository.findByUsername(username);
+        final UserDO user = userMapper.findByUsername(username);
 
         if (user == null) {
             throw new UsernameNotFoundException("User '" + username + "' not found");

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.lj.pdl.mapper.UserMapper">
+    <resultMap id="BaseResultMap" type="cn.lj.pdl.model.UserDO">
+        <id     column="id"          property="id"         jdbcType="BIGINT"    javaType="Long" />
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" javaType="java.util.Date" />
+        <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" javaType="java.util.Date" />
+        <result column="username"    property="username"   jdbcType="VARCHAR"   javaType="java.lang.String" />
+        <result column="password"    property="password"   jdbcType="VARCHAR"   javaType="java.lang.String" />
+    </resultMap>
+
+    <sql id="Base_Column_List" >
+        id, create_time, modify_time, username, password
+    </sql>
+
+    <insert id="insert" parameterType="cn.lj.pdl.model.UserDO" useGeneratedKeys="true" keyProperty="id" >
+        INSERT INTO user
+        (create_time, modify_time, username, password)
+        VALUES
+        (now(), now(), #{username}, #{password})
+    </insert>
+
+    <delete id="delete" parameterType="Long" >
+        DELETE FROM user
+        WHERE id = #{id}
+    </delete>
+
+    <select id="existsByUsername" parameterType="java.lang.String" resultType="boolean" >
+        SELECT EXISTS (
+            SELECT 1 FROM user
+            WHERE username = #{username}
+        )
+    </select>
+
+    <select id="findByUsername" parameterType="java.lang.String" resultMap="BaseResultMap" >
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM user
+        WHERE username = #{username}
+    </select>
+</mapper>

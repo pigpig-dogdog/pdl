@@ -1,11 +1,7 @@
 package cn.lj.pdl.model;
 
 import lombok.Data;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import javax.persistence.*;
 import java.util.Date;
 
 /**
@@ -13,27 +9,29 @@ import java.util.Date;
  * @date 2019/11/23
  */
 @Data
-@Entity
-@Table(name = "user")
-@EntityListeners(AuditingEntityListener.class)
 public class UserDO {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    /**
+     * 主键
+     */
     private Long id;
 
-    @CreatedDate
-    @Column(name = "create_time", nullable = false)
+    /**
+     * 创建时间
+     */
     private Date createTime;
 
-    @LastModifiedDate
-    @Column(name = "modify_time", nullable = false)
+    /**
+     * 修改时间
+     */
     private Date modifyTime;
 
-    @Column(name = "username", nullable = false, unique = true)
+    /**
+     * 用户名
+     */
     private String username;
 
-    @Column(name = "password", nullable = false)
+    /**
+     * 密码
+     */
     private String password;
-
 }
