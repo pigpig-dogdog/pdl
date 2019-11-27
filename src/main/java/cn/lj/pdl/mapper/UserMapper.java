@@ -2,13 +2,13 @@ package cn.lj.pdl.mapper;
 
 import cn.lj.pdl.model.UserDO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author luojian
  * @date 2019/11/26
  */
-
 @Mapper
 @Repository
 public interface UserMapper {
@@ -25,7 +25,7 @@ public interface UserMapper {
      *
      * @param id 用户主键
      */
-    void delete(Long id);
+    void delete(@Param("id") Long id);
 
     /**
      * 查找用户名是否存在
@@ -33,7 +33,7 @@ public interface UserMapper {
      * @param username 用户名
      * @return boolean
      */
-    boolean existsByUsername(String username);
+    Boolean existsByUsername(@Param("username") String username);
 
     /**
      * 根据用户名获取UserDO
@@ -41,6 +41,6 @@ public interface UserMapper {
      * @param username 用户名
      * @return UserDO
      */
-    UserDO findByUsername(String username);
+    UserDO findByUsername(@Param("username") String username);
 
 }

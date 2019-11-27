@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import java.util.stream.Collectors;
+
 /**
  * @author luojian
  * @date 2019/11/23
@@ -39,12 +41,11 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Body> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         // 汇总错误信息
-        StringBuilder summary = new StringBuilder();
-        for (ObjectError err : e.getBindingResult().getAllErrors()) {
-            summary.append(err.getDefaultMessage()).append(", ");
-        }
-        summary.setLength(summary.length() - 2);
-        return ResponseEntityUtil.buildFail(BizExceptionEnum.METHOD_ARGUMENT_NOT_VALID_EXCEPTION, summary.toString());
+        String summary = e.getBindingResult().getAllErrors().stream()
+                .map(ObjectError::getDefaultMessage)
+                .collect(Collectors.joining(", "));
+
+        return ResponseEntityUtil.buildFail(BizExceptionEnum.METHOD_ARGUMENT_NOT_VALID_EXCEPTION, summary);
     }
 
     /**
@@ -63,6 +64,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Body> handleException(Exception e) {
         log.error(e.toString());
         e.printStackTrace();
-        return ResponseEntityUtil.buildFail(BizExceptionEnum.UNDEFINED_ERROR, e.getMessage());
+        return ResponseEntityUtil.buildFail(BizExceptionEnum.UNEXPECTED_SERVER_ERROR, e.getMessage());
     }
 }

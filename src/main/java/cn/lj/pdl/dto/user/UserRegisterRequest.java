@@ -13,13 +13,11 @@ import javax.validation.constraints.Size;
 @ApiModel
 @Data
 public class UserRegisterRequest {
-    @ApiModelProperty(required = true)
-    @Size(min = 2, message = "用户名长度不能小于2")
-    @Size(max = 32, message = "用户名长度不能大于32")
+    @ApiModelProperty(value = "用户名", required = true, example = "admin", position = 1)
+    @Size(min = 2, max = 32, message = "用户名有效长度范围: 2 ~ 32")
     private String username;
 
-    @ApiModelProperty(required = true)
-    @Size(min = 3, message = "密码长度不能小于3")
-    @Size(max = 100, message = "密码长度不能大于100")
+    @ApiModelProperty(value = "密码", required = true, example = "\"123456\"", position = 2)
+    @Size(min = 3, max = 100, message = "用户名有效长度范围: 3 ~ 100")
     private String password;
 }

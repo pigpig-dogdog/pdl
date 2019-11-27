@@ -40,7 +40,7 @@ public class UserController {
     @ApiOperation(value = "用户注册")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "注册成功"),
-            @ApiResponse(code = 400, message = "用户名相关：已存在 | 为空 | 长度小于2 | 长度大于32\n密码相关：为空 | 长度小于3 | 长度大于100")})
+            @ApiResponse(code = 400, message = "用户名相关：已存在 | 长度小于2 | 长度大于32\n密码相关：长度小于3 | 长度大于100")})
     public Body<UserRegisterResponse> register(@RequestBody @Valid UserRegisterRequest userRegisterRequest) {
         UserRegisterResponse response = userService.register(userRegisterRequest);
         return Body.buildSuccess(response);

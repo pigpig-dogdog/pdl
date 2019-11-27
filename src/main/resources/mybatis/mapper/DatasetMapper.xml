@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.lj.pdl.mapper.DatasetMapper">
+    <resultMap id="DatasetResultMap" type="DatasetDO">
+        <id     column="id"               property="id"              jdbcType="BIGINT"    javaType="Long" />
+        <result column="create_time"      property="createTime"      jdbcType="TIMESTAMP" javaType="java.util.Date" />
+        <result column="modify_time"      property="modifyTime"      jdbcType="TIMESTAMP" javaType="java.util.Date" />
+        <result column="creator_name"     property="creatorName"     jdbcType="VARCHAR"   javaType="String" />
+        <result column="name"             property="name"            jdbcType="VARCHAR"   javaType="String" />
+        <result column="description"      property="description"     jdbcType="VARCHAR"   javaType="String" />
+        <result column="algo_type"        property="algoType"        jdbcType="VARCHAR"   javaType="cn.lj.pdl.constant.AlgoType" />
+        <result column="classes_number"   property="classesNumber"   jdbcType="INTEGER"   javaType="Integer" />
+        <result column="classes_names"    property="classesNames"    jdbcType="VARCHAR"   javaType="String" />
+        <result column="images_number"    property="imagesNumber"    jdbcType="INTEGER"   javaType="Integer" />
+        <result column="cover_image_url"  property="coverImageUrl"   jdbcType="VARCHAR"   javaType="String" />
+    </resultMap>
+
+    <sql id="Dataset_All_Columns_Without_Id" >
+        create_time, modify_time, creator_name, name, description, algo_type, classes_number, classes_names, images_number, cover_image_url
+    </sql>
+
+    <sql id="Dataset_All_Columns" >
+        id, <include refid="Dataset_All_Columns_Without_Id" />
+    </sql>
+
+    <sql id="Dynamic_Query">
+        TRUE
+        <if test="condition.id != null">
+            AND id = #{condition.id}
+        </if>
+        <if test="condition.creatorName != null">
+            AND creator_name LIKE concat ('%', #{condition.creatorName}, '%')
+        </if>
+        <if test="condition.name != null">
+            AND name LIKE concat('%', #{condition.name}, '%')
+        </if>
+        <if test="condition.algoType != null">
+            AND algo_type = #{condition.algoType}
+        </if>
+        <if test="condition.classesNumber != null">
+            AND classes_number = #{condition.classesNumber}
+        </if>
+    </sql>
+
+    <insert id="insert" parameterType="DatasetDO" useGeneratedKeys="true" keyProperty="id" >
+        INSERT INTO dataset
+            (<include refid="Dataset_All_Columns_Without_Id" />)
+        VALUES
+            (now(), now(), #{creatorName}, #{name}, #{description}, #{algoType}, #{classesNumber}, #{classesNames}, #{imagesNumber}, #{coverImageUrl})
+    </insert>
+
+    <delete id="delete" parameterType="Long">
+        DELETE FROM dataset
+        WHERE id = #{id}
+    </delete>
+
+    <select id="existsByName" parameterType="String" resultType="Boolean">
+        SELECT EXISTS (
+            SELECT 1 FROM dataset
+            WHERE name = #{name}
+        )
+    </select>
+
+    <select id="existsById" parameterType="Long" resultType="Boolean">
+        SELECT EXISTS (
+            SELECT 1 FROM dataset
+            WHERE id = #{id}
+        )
+    </select>
+
+    <select id="findById" parameterType="Long" resultMap="DatasetResultMap">
+        SELECT
+            <include refid="Dataset_All_Columns" />
+        FROM dataset
+        WHERE id = #{id}
+    </select>
+
+    <!-- todo: parameterType 多个 -->
+    <select id="findByCondition" resultMap="DatasetResultMap" >
+        SELECT
+            <include refid="Dataset_All_Columns" />
+        FROM dataset
+        WHERE
+            <include refid="Dynamic_Query" />
+        ORDER BY modify_time DESC
+        LIMIT #{pageInfo.startIndex}, #{pageInfo.pageSize}
+    </select>
+
+    <select id="countByCondition" resultType="Integer">
+        SELECT COUNT(1)
+        FROM dataset
+        WHERE
+            <include refid="Dynamic_Query" />
+    </select>
+
+</mapper>

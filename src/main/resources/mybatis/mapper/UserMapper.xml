@@ -1,23 +1,27 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="cn.lj.pdl.mapper.UserMapper">
-    <resultMap id="BaseResultMap" type="cn.lj.pdl.model.UserDO">
+    <resultMap id="UserResultMap" type="UserDO">
         <id     column="id"          property="id"         jdbcType="BIGINT"    javaType="Long" />
         <result column="create_time" property="createTime" jdbcType="TIMESTAMP" javaType="java.util.Date" />
         <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" javaType="java.util.Date" />
-        <result column="username"    property="username"   jdbcType="VARCHAR"   javaType="java.lang.String" />
-        <result column="password"    property="password"   jdbcType="VARCHAR"   javaType="java.lang.String" />
+        <result column="username"    property="username"   jdbcType="VARCHAR"   javaType="String" />
+        <result column="password"    property="password"   jdbcType="VARCHAR"   javaType="String" />
     </resultMap>
 
-    <sql id="Base_Column_List" >
-        id, create_time, modify_time, username, password
+    <sql id="User_All_Columns_Without_Id" >
+        create_time, modify_time, username, password
     </sql>
 
-    <insert id="insert" parameterType="cn.lj.pdl.model.UserDO" useGeneratedKeys="true" keyProperty="id" >
+    <sql id="User_All_Columns" >
+        id, <include refid="User_All_Columns_Without_Id" />
+    </sql>
+
+    <insert id="insert" parameterType="UserDO" useGeneratedKeys="true" keyProperty="id" >
         INSERT INTO user
-        (create_time, modify_time, username, password)
+            (<include refid="User_All_Columns_Without_Id" />)
         VALUES
-        (now(), now(), #{username}, #{password})
+            (now(), now(), #{username}, #{password})
     </insert>
 
     <delete id="delete" parameterType="Long" >
@@ -25,16 +29,16 @@
         WHERE id = #{id}
     </delete>
 
-    <select id="existsByUsername" parameterType="java.lang.String" resultType="boolean" >
+    <select id="existsByUsername" parameterType="String" resultType="Boolean" >
         SELECT EXISTS (
             SELECT 1 FROM user
             WHERE username = #{username}
         )
     </select>
 
-    <select id="findByUsername" parameterType="java.lang.String" resultMap="BaseResultMap" >
+    <select id="findByUsername" parameterType="String" resultMap="UserResultMap" >
         SELECT
-        <include refid="Base_Column_List" />
+            <include refid="User_All_Columns" />
         FROM user
         WHERE username = #{username}
     </select>

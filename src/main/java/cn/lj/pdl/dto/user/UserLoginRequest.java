@@ -13,11 +13,11 @@ import javax.validation.constraints.NotBlank;
 @ApiModel
 @Data
 public class UserLoginRequest {
-    @ApiModelProperty(required = true)
+    @ApiModelProperty(value = "用户名", required = true, example = "admin", position = 1)
     @NotBlank(message = "用户名不可为空")
     private String username;
 
-    @ApiModelProperty(required = true)
+    @ApiModelProperty(value = "密码", required = true, example = "\"123456\"", position = 2)
     @NotBlank(message = "密码不可为空")
     private String password;
 }

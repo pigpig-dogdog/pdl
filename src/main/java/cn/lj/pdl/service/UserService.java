@@ -25,4 +25,11 @@ public interface UserService {
      * @return UserLoginResponse
      */
     UserLoginResponse login(UserLoginRequest request);
+
+    /**
+     * 获取当前发起请求的用户名
+     *
+     * @return String 当前发起请求的用户名
+     */
+    String getCurrentRequestUsername();
 }

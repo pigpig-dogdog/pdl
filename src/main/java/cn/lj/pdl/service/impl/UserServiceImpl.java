@@ -12,6 +12,8 @@ import cn.lj.pdl.security.JwtTokenProvider;
 import cn.lj.pdl.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -76,6 +78,11 @@ public class UserServiceImpl implements UserService {
         response.setUsername(username);
         response.setToken(jwtTokenProvider.createBearerToken(username));
         return response;
+    }
+
+    @Override
+    public String getCurrentRequestUsername() {
+        return ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
     }
 
 }
