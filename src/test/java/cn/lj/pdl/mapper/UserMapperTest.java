@@ -2,7 +2,7 @@ package cn.lj.pdl.mapper;
 
 import cn.lj.pdl.constant.Constants;
 import cn.lj.pdl.model.UserDO;
-import cn.lj.pdl.utils.TestUtil;
+import cn.lj.pdl.utils.CommonUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +24,7 @@ public class UserMapperTest {
 
     @Test
     public void testInsert() {
-        String username = TestUtil.generateUUID();
+        String username = CommonUtil.generateUuid();
         UserDO userDO = new UserDO();
         userDO.setUsername(username);
         userDO.setPassword("123");

@@ -3,6 +3,7 @@ package cn.lj.pdl.controller;
 import cn.lj.pdl.constant.AlgoType;
 import cn.lj.pdl.dto.Body;
 import cn.lj.pdl.dto.dataset.DatasetCreateRequest;
+import cn.lj.pdl.utils.CommonUtil;
 import cn.lj.pdl.utils.TestUtil;
 import com.alibaba.fastjson.JSON;
 import org.apache.commons.lang3.tuple.Triple;
@@ -59,7 +60,7 @@ public class DatasetControllerTest {
     public void testCreateDatasetSuccess() throws Exception {
         // 请求参数
         DatasetCreateRequest param = new DatasetCreateRequest();
-        param.setName(TestUtil.generateUUID());
+        param.setName(CommonUtil.generateUuid());
         param.setDescription("test_dataset_description");
         param.setAlgoType(AlgoType.CLASSIFICATION);
         param.setClassesNumber(3);
@@ -83,7 +84,6 @@ public class DatasetControllerTest {
         // 校验
         Assertions.assertThat(status).isEqualTo(HttpStatus.OK.value()); // 校验 status
         Assertions.assertThat(body.getSuccess()).isEqualTo(true);
-//        Assertions.assertThat(body.getCode()).isEqualTo(BizExceptionEnum.XXX.getCode()); // 校验错误码
 
     }
 }

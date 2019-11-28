@@ -10,8 +10,6 @@ import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.UUID;
-
 /**
  * @author luojian
  * @date 2019/11/23
@@ -31,13 +29,9 @@ public class TestUtil {
         TestUtil.userMapper = userMapper;
     }
 
-    public static String generateUUID() {
-        return UUID.randomUUID().toString().replaceAll("-", "");
-    }
-
     public static Triple<String, String, String> registerTestUser() {
-        String username = generateUUID();
-        String password = generateUUID();
+        String username = CommonUtil.generateUuid();
+        String password = CommonUtil.generateUuid();
         UserRegisterRequest request = new UserRegisterRequest();
         request.setUsername(username);
         request.setPassword(password);

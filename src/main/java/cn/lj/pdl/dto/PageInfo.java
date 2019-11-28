@@ -19,8 +19,8 @@ public class PageInfo {
     private Integer pageSize;
 
     /**
-     * 数据库分页起始坐标，limit startIndex, size
-     * 由前两项计算得出，并不是直接赋值
+     * 数据库分页起始坐标，sql: limit startIndex, pageSize
+     * 由 pageNumber 和 pageSize 计算得出，并不是直接赋值
      */
     private Integer startIndex;
 

@@ -6,6 +6,7 @@ import cn.lj.pdl.dto.user.UserLoginResponse;
 import cn.lj.pdl.dto.user.UserRegisterRequest;
 import cn.lj.pdl.dto.user.UserRegisterResponse;
 import cn.lj.pdl.exception.BizExceptionEnum;
+import cn.lj.pdl.utils.CommonUtil;
 import cn.lj.pdl.utils.TestUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
@@ -140,7 +141,7 @@ public class UserControllerTest {
     public void testLoginFailedUsernameNotExist() throws Exception {
         // 请求参数
         UserLoginRequest param = new UserLoginRequest();
-        param.setUsername(TestUtil.generateUUID());
+        param.setUsername(CommonUtil.generateUuid());
         param.setPassword(testUserPassword);
         String content = JSON.toJSONString(param);
 
@@ -194,8 +195,8 @@ public class UserControllerTest {
     public void testRegisterSuccess() throws Exception {
         // 请求参数
         UserRegisterRequest param = new UserRegisterRequest();
-        param.setUsername(TestUtil.generateUUID());
-        param.setPassword(TestUtil.generateUUID());
+        param.setUsername(CommonUtil.generateUuid());
+        param.setPassword(CommonUtil.generateUuid());
         String content = JSON.toJSONString(param);
 
         // 设置http请求包
