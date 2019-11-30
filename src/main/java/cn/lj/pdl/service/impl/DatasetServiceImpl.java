@@ -44,11 +44,11 @@ public class DatasetServiceImpl implements DatasetService {
     }
 
     @Override
-    public PageResponse<DatasetDO> list(Integer pageNumber, Integer pageSize,
-                                        String creatorName, String name, AlgoType algoType) {
+    public PageResponse<DatasetDO> list(Integer pageNumber, Integer pageSize, String creatorName, String name, AlgoType algoType) {
+        // 分页信息
         PageInfo pageInfo = new PageInfo(pageNumber, pageSize);
 
-        // mapper.xml的条件查询对于null的查询字段会自动忽略，set的这几个字段均可为null，无需另加冗余判断
+        // 条件查询信息
         DatasetDO condition = new DatasetDO();
         condition.setCreatorName(creatorName);
         condition.setName(name);
@@ -85,24 +85,22 @@ public class DatasetServiceImpl implements DatasetService {
         datasetDO.setImagesNumber(0);
         datasetDO.setCoverImageUrl(null);
 
-        Long id = datasetMapper.insert(datasetDO);
+        // dataset表 插入行
+        datasetMapper.insert(datasetDO);
 
-        try {
-            // 创建数据集的目录树
-            String datasetRootPath = Constants.getDatasetRootPath();
-            String datasetDirPath = Constants.getDatasetDirPath(datasetDO.getUuid());
-            String datasetImagesDirPath = Constants.getDatasetImagesDirPath(datasetDO.getUuid());
-            String datasetAnnotationsDirPath = Constants.getDatasetAnnotationsDirPath(datasetDO.getUuid());
-            storageService.createDirs(datasetRootPath, datasetDirPath, datasetImagesDirPath, datasetAnnotationsDirPath);
-        } catch (RuntimeException e) {
-            // 文件服务失败，删除刚刚插入数据库的记录
-            datasetMapper.delete(id);
-            throw e;
-        }
+        // 文件服务 创建数据集目录树
+        storageService.createDirs(
+                Constants.getDatasetRootPath(),
+                Constants.getDatasetDirPath(datasetDO.getUuid()),
+                Constants.getDatasetImagesDirPath(datasetDO.getUuid()),
+                Constants.getDatasetAnnotationsDirPath(datasetDO.getUuid())
+        );
+
     }
 
     @Override
     public void delete(Long id, String requestUsername) {
+
         DatasetDO datasetDO = datasetMapper.findById(id);
 
         // id 不存在
@@ -115,85 +113,20 @@ public class DatasetServiceImpl implements DatasetService {
             throw new BizException(BizExceptionEnum.NOT_THIS_DATASET_CREATOR);
         }
 
+        // dataset表 删除行
         // 因为建立了外键约束 ON DELETE CASCADE, 所以当数据集被删除时, 所属的图片会被自动删除
         datasetMapper.delete(id);
 
-        // 文件服务删除对应目录
-        String datasetDirPath = Constants.getDatasetDirPath(datasetDO.getUuid());
-        storageService.deleteDir(datasetDirPath);
+        // 文件服务 删除数据集目录
+        storageService.deleteDir(Constants.getDatasetDirPath(datasetDO.getUuid()));
     }
 
     @Override
-    public void uploadImage(Long datasetId, byte[] image, String extension, String requestUsername) {
-        DatasetDO datasetDO = datasetMapper.findById(datasetId);
-
-        // id 不存在
-        if (datasetDO == null) {
-            throw new BizException(BizExceptionEnum.DATASET_NOT_EXIST);
-        }
-
-        String fileName = CommonUtil.generateUuid() + "." + extension;
-        String datasetImagePath = Constants.getDatasetImagePath(datasetDO.getUuid(), fileName);
-        // 文件服务上传对应文件
-        URL url = storageService.uploadFile(datasetImagePath, image);
-
-        ImageDO imageDO = new ImageDO();
-        imageDO.setUploaderName(requestUsername);
-        imageDO.setDatasetId(datasetId);
-        imageDO.setFilename(fileName);
-        imageDO.setAnnotated(false);
-        imageDO.setAnnotation(null);
-        imageDO.setUrl(url.toString());
-
-        // 对应的数据集的imagesNumber+1已经写在该insert sql中了
-        imageMapper.insert(imageDO);
-}
-
-    @Override
-    public void deleteImage(Long imageId, String requestUsername) {
-        ImageDO imageDO = imageMapper.findById(imageId);
-
-        // id 不存在
-        if (imageDO == null) {
-            throw new BizException(BizExceptionEnum.IMAGE_NOT_EXIST);
-        }
-
-        DatasetDO datasetDO = datasetMapper.findById(imageDO.getDatasetId());
-        // 不是该数据集的创建者
-        if (!datasetDO.getCreatorName().equals(requestUsername)) {
-            throw new BizException(BizExceptionEnum.NOT_THIS_DATASET_CREATOR);
-        }
-
-        // 文件服务删除对应文件
-        storageService.deleteFile(Constants.getDatasetImagePath(datasetDO.getUuid(), imageDO.getFilename()));
-
-        // 对应的数据集的imagesNumber-1已经写在该delete sql中了
-        imageMapper.delete(imageId);
-    }
-
-    @Override
-    public void uploadCoverImage(Long datasetId, byte[] image, String extension) {
-        DatasetDO datasetDO = datasetMapper.findById(datasetId);
-
-        // id 不存在
-        if (datasetDO == null) {
-            throw new BizException(BizExceptionEnum.DATASET_NOT_EXIST);
-        }
-
-        String datasetCoverImagePath = Constants.getDatasetCoverImagePath(datasetDO.getUuid(), extension);
-        URL url = storageService.uploadFile(datasetCoverImagePath, image);
-
-        // 封面图片信息不需要插入image表，只需要更新dataset表对应行即可
-        datasetMapper.updateCoverImageUrl(datasetId, url.toString());
-    }
-
-    @Override
-    public PageResponse<ImageDO> listImages(Long datasetId,
-                                            Integer pageNumber, Integer pageSize,
-                                            Boolean annotated) {
+    public PageResponse<ImageDO> listImages(Long datasetId, Integer pageNumber, Integer pageSize, Boolean annotated) {
+        // 分页信息
         PageInfo pageInfo = new PageInfo(pageNumber, pageSize);
 
-        // mapper.xml的条件查询对于null的查询字段会自动忽略，set的这几个字段均可为null，无需另加冗余判断
+        // 条件查询信息
         ImageDO condition = new ImageDO();
         condition.setDatasetId(datasetId);
         condition.setAnnotated(annotated);
@@ -210,6 +143,74 @@ public class DatasetServiceImpl implements DatasetService {
                 : imageMapper.findByCondition(condition, pageInfo);
 
         return new PageResponse<>(pageNumber, pageSize, totalItemsNumber, totalPagesNumber, list);
+    }
+
+    @Override
+    public void uploadImage(Long datasetId, byte[] image, String extension, String requestUsername) {
+
+        DatasetDO datasetDO = datasetMapper.findById(datasetId);
+
+        // datasetId 不存在
+        if (datasetDO == null) {
+            throw new BizException(BizExceptionEnum.DATASET_NOT_EXIST);
+        }
+
+        String fileName = CommonUtil.generateUuid() + "." + extension;
+        String datasetImagePath = Constants.getDatasetImagePath(datasetDO.getUuid(), fileName);
+        // 文件服务 上传图片
+        URL url = storageService.uploadFile(datasetImagePath, image);
+
+        ImageDO imageDO = new ImageDO();
+        imageDO.setUploaderName(requestUsername);
+        imageDO.setDatasetId(datasetId);
+        imageDO.setFilename(fileName);
+        imageDO.setAnnotated(false);
+        imageDO.setAnnotation(null);
+        imageDO.setUrl(url.toString());
+
+        // image表 插入行, 同时更新所属数据集的images_number++, 已经一起写在sql里面了
+        imageMapper.insert(imageDO);
+}
+
+    @Override
+    public void uploadCoverImage(Long datasetId, byte[] image, String extension) {
+
+        DatasetDO datasetDO = datasetMapper.findById(datasetId);
+
+        // id 不存在
+        if (datasetDO == null) {
+            throw new BizException(BizExceptionEnum.DATASET_NOT_EXIST);
+        }
+
+        String datasetCoverImagePath = Constants.getDatasetCoverImagePath(datasetDO.getUuid(), extension);
+        URL url = storageService.uploadFile(datasetCoverImagePath, image);
+
+        // 封面图片信息不需要插入image表，只需要更新dataset表对应行即可
+        datasetMapper.updateCoverImageUrl(datasetId, url.toString());
+    }
+
+    @Override
+    public void deleteImage(Long imageId, String requestUsername) {
+
+        ImageDO imageDO = imageMapper.findById(imageId);
+
+        // imageId 不存在
+        if (imageDO == null) {
+            throw new BizException(BizExceptionEnum.IMAGE_NOT_EXIST);
+        }
+
+        DatasetDO datasetDO = datasetMapper.findById(imageDO.getDatasetId());
+
+        // 不是该数据集的创建者
+        if (!datasetDO.getCreatorName().equals(requestUsername)) {
+            throw new BizException(BizExceptionEnum.NOT_THIS_DATASET_CREATOR);
+        }
+
+        // 文件服务 删除对应文件
+        storageService.deleteFile(Constants.getDatasetImagePath(datasetDO.getUuid(), imageDO.getFilename()));
+
+        // image表 插入行, 同时更新所属数据集的images_number--, 已经一起写在sql里面了
+        imageMapper.delete(imageId);
     }
 
 
