@@ -54,9 +54,16 @@ public interface DatasetMapper {
      */
     DatasetDO findById(@Param("id") Long id);
 
+    /**
+     * 更新数据集的封面图片url
+     *
+     * @param id 数据集id
+     * @param coverImageUrl 封面图片url
+     */
+    void updateCoverImageUrl(@Param("id") Long id, @Param("coverImageUrl") String coverImageUrl);
 
     /**
-     * 符合条件的总行数
+     * 条件查询，返回符合条件的总行数
      *
      * @param condition 查询条件
      * @param pageInfo 页信息
@@ -66,7 +73,7 @@ public interface DatasetMapper {
                              @Param("pageInfo") PageInfo pageInfo);
 
     /**
-     * 符合条件的数据
+     * 条件查询，返回符合条件的数据列表
      *
      * @param condition 查询条件
      * @param pageInfo 页信息

@@ -32,6 +32,11 @@ public class DatasetDO {
     private String creatorName;
 
     /**
+     * 数据集uuid作为唯一标识
+     */
+    private String uuid;
+
+    /**
      * 数据集名称
      */
     private String name;

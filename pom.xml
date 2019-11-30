@@ -71,6 +71,12 @@
             <artifactId>fastjson</artifactId>
             <version>1.2.58</version>
         </dependency>
+        <!-- 阿里云OSS-->
+        <dependency>
+            <groupId>com.aliyun.oss</groupId>
+            <artifactId>aliyun-sdk-oss</artifactId>
+            <version>3.8.0</version>
+        </dependency>
         <dependency>
             <!-- Automatically restart whenever files on the classpath change -->
             <groupId>org.springframework.boot</groupId>
@@ -93,6 +99,11 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.7</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.6</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

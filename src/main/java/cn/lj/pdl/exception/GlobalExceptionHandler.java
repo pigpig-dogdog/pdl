@@ -10,6 +10,8 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
 
 import java.util.stream.Collectors;
 
@@ -54,6 +56,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = BizException.class)
     public ResponseEntity<Body> handleBizException(BizException e) {
         return ResponseEntityUtil.buildFail(e);
+    }
+
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<Body> handleMultipartException(MultipartException e) {
+        return (e instanceof MaxUploadSizeExceededException)
+               ? ResponseEntityUtil.buildFail(BizExceptionEnum.FILE_SIZE_TOO_LARGE)
+               : ResponseEntityUtil.buildFail(BizExceptionEnum.UPLOAD_MULTIPART_FILE_EXCEPTION, e.getMessage());
     }
 
     /**

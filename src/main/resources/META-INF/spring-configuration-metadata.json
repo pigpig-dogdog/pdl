@@ -1,0 +1,24 @@
+{
+  "properties": [
+    {
+      "name": "aliyun.oss.bucketname",
+      "type": "java.lang.String"
+    },
+    {
+      "name": "aliyun.oss.endpoint",
+      "type": "java.lang.String"
+    },
+    {
+      "name": "aliyun.oss.access-key-id",
+      "type": "java.lang.String"
+    },
+    {
+      "name": "aliyun.oss.access-key-secret",
+      "type": "java.lang.String"
+    },
+    {
+      "name": "aliyun.oss.file-url-expiration",
+      "type": "java.lang.Long"
+    }
+  ]
+}

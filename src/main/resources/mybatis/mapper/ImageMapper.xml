@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.lj.pdl.mapper.ImageMapper">
+    <resultMap id="ImageResultMap" type="ImageDO">
+        <id     column="id"               property="id"              jdbcType="BIGINT"    javaType="Long" />
+        <result column="create_time"      property="createTime"      jdbcType="TIMESTAMP" javaType="java.util.Date" />
+        <result column="modify_time"      property="modifyTime"      jdbcType="TIMESTAMP" javaType="java.util.Date" />
+        <result column="uploader_name"    property="uploaderName"    jdbcType="VARCHAR"   javaType="String" />
+        <result column="dataset_id"       property="datasetId"       jdbcType="BIGINT"    javaType="Long" />
+        <result column="filename"          property="filename"         jdbcType="VARCHAR"   javaType="String" />
+        <result column="is_annotated"     property="annotated"       jdbcType="TINYINT"   javaType="Boolean" />
+        <result column="annotation"       property="annotation"      jdbcType="VARCHAR"   javaType="String" />
+        <result column="url"              property="url"             jdbcType="VARCHAR"   javaType="String" />
+    </resultMap>
+
+    <sql id="Image_All_Columns_Without_Id" >
+        create_time, modify_time, uploader_name, dataset_id, filename, is_annotated, annotation, url
+    </sql>
+
+    <sql id="Image_All_Columns" >
+        id, <include refid="Image_All_Columns_Without_Id" />
+    </sql>
+
+
+    <sql id="Image_Dynamic_Query">
+        TRUE
+        <if test="condition.id != null">
+            AND id = #{condition.id}
+        </if>
+        <if test="condition.dataset_id != null">
+            AND dataset_id = #{condition.dataset_id}
+        </if>
+        <if test="condition.is_annotated != null">
+            AND is_annotated = #{condition.is_annotated}
+        </if>
+        <if test="condition.annotation != null">
+            AND annotation = #{condition.annotation}
+        </if>
+    </sql>
+
+    <insert id="insert" parameterType="ImageDO" useGeneratedKeys="true" keyProperty="id" >
+        INSERT INTO image
+            (<include refid="Image_All_Columns_Without_Id" />)
+        VALUES
+            (now(), now(), #{uploaderName}, #{datasetId}, #{filename}, #{annotated}, #{annotation}, #{url})
+        ;
+
+        # 再把该图片所属的数据集image_number数量 + 1
+        UPDATE dataset
+        SET images_number = images_number + 1
+        WHERE id = #{datasetId}
+    </insert>
+
+    <delete id="delete" parameterType="Long">
+        # 先把该图片所属的数据集image_number数量 - 1
+        UPDATE dataset
+        SET images_number = images_number - 1
+        WHERE id = ( SELECT dataset_id FROM image WHERE id = #{id} );
+
+        DELETE FROM image
+        WHERE id = #{id};
+    </delete>
+
+    <select id="findById" parameterType="Long" resultMap="ImageResultMap">
+        SELECT
+            <include refid="Image_All_Columns" />
+        FROM image
+        WHERE id = #{id}
+    </select>
+
+    <select id="countByCondition" resultType="Integer">
+        SELECT COUNT(1)
+        FROM image
+        WHERE
+            <include refid="Image_Dynamic_Query" />
+    </select>
+
+    <select id="findByCondition" resultMap="ImageResultMap">
+        SELECT
+            <include refid="Image_All_Columns" />
+        FROM image
+        WHERE
+            <include refid="Image_Dynamic_Query" />
+        ORDER BY modify_time DESC
+        LIMIT #{pageInfo.startIndex}, #{pageInfo.pageSize}
+    </select>
+
+</mapper>

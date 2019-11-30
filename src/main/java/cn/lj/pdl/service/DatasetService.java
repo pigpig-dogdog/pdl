@@ -4,6 +4,7 @@ import cn.lj.pdl.constant.AlgoType;
 import cn.lj.pdl.dto.PageResponse;
 import cn.lj.pdl.dto.dataset.DatasetCreateRequest;
 import cn.lj.pdl.model.DatasetDO;
+import cn.lj.pdl.model.ImageDO;
 
 /**
  * @author luojian
@@ -27,7 +28,7 @@ public interface DatasetService {
     void delete(Long id, String requestUsername);
 
     /**
-     * 分页条件查询
+     * 获取数据集列表, 分页条件查询
      *
      * @param pageNumber 页号
      * @param pageSize 每页记录数
@@ -36,5 +37,47 @@ public interface DatasetService {
      * @param algoType 算法类型
      * @return PageResponse
      */
-    PageResponse<DatasetDO> list(Integer pageNumber, Integer pageSize, String creatorName, String name, AlgoType algoType);
+    PageResponse<DatasetDO> list(Integer pageNumber, Integer pageSize,
+                                 String creatorName, String name, AlgoType algoType);
+
+    /**
+     * 给数据集上传图片
+     *
+     * @param datasetId 数据集id
+     * @param image 图片
+     * @param extension 扩展名
+     * @param requestUsername 发起请求的用户名
+     */
+    void uploadImage(Long datasetId, byte[] image, String extension, String requestUsername);
+
+    /**
+     * 给数据集删除图片
+     *
+     * @param imageId 图片id
+     * @param requestUsername 发起请求的用户名
+     */
+    void deleteImage(Long imageId, String requestUsername);
+
+    /**
+     * 给数据集上传封面图片
+     *
+     * @param datasetId 数据集id
+     * @param image 图片
+     * @param extension 扩展名
+     * @param requestUsername 发起请求的用户名
+     */
+    void uploadCoverImage(Long datasetId, byte[] image, String extension);
+
+    /**
+     * 获取某个数据集的图像列表, 分页条件查询
+     *
+     * @param datasetId 数据集id
+     * @param  pageNumber 页号
+     * @param pageSize 页码
+     * @param annotated 是否已标注
+     * @return PageResponse
+     */
+    PageResponse<ImageDO> listImages(Long datasetId,
+                                     Integer pageNumber, Integer pageSize,
+                                     Boolean annotated);
 }

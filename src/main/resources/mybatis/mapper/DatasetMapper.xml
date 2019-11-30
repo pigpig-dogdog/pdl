@@ -6,6 +6,7 @@
         <result column="create_time"      property="createTime"      jdbcType="TIMESTAMP" javaType="java.util.Date" />
         <result column="modify_time"      property="modifyTime"      jdbcType="TIMESTAMP" javaType="java.util.Date" />
         <result column="creator_name"     property="creatorName"     jdbcType="VARCHAR"   javaType="String" />
+        <result column="uuid"             property="uuid"            jdbcType="VARCHAR"   javaType="String" />
         <result column="name"             property="name"            jdbcType="VARCHAR"   javaType="String" />
         <result column="description"      property="description"     jdbcType="VARCHAR"   javaType="String" />
         <result column="algo_type"        property="algoType"        jdbcType="VARCHAR"   javaType="cn.lj.pdl.constant.AlgoType" />
@@ -16,14 +17,14 @@
     </resultMap>
 
     <sql id="Dataset_All_Columns_Without_Id" >
-        create_time, modify_time, creator_name, name, description, algo_type, classes_number, classes_names, images_number, cover_image_url
+        create_time, modify_time, creator_name, uuid, name, description, algo_type, classes_number, classes_names, images_number, cover_image_url
     </sql>
 
     <sql id="Dataset_All_Columns" >
         id, <include refid="Dataset_All_Columns_Without_Id" />
     </sql>
 
-    <sql id="Dynamic_Query">
+    <sql id="Dataset_Dynamic_Query">
         TRUE
         <if test="condition.id != null">
             AND id = #{condition.id}
@@ -46,8 +47,14 @@
         INSERT INTO dataset
             (<include refid="Dataset_All_Columns_Without_Id" />)
         VALUES
-            (now(), now(), #{creatorName}, #{name}, #{description}, #{algoType}, #{classesNumber}, #{classesNames}, #{imagesNumber}, #{coverImageUrl})
+            (now(), now(), #{creatorName}, #{uuid}, #{name}, #{description}, #{algoType}, #{classesNumber}, #{classesNames}, #{imagesNumber}, #{coverImageUrl})
     </insert>
+
+    <update id="updateCoverImageUrl">
+        UPDATE dataset
+        SET cover_image_url = #{coverImageUrl}, modify_time = now()
+        WHERE id = #{id}
+    </update>
 
     <delete id="delete" parameterType="Long">
         DELETE FROM dataset
@@ -75,22 +82,21 @@
         WHERE id = #{id}
     </select>
 
-    <!-- todo: parameterType 多个 -->
+    <select id="countByCondition" resultType="Integer">
+        SELECT COUNT(1)
+        FROM dataset
+        WHERE
+            <include refid="Dataset_Dynamic_Query" />
+    </select>
+
     <select id="findByCondition" resultMap="DatasetResultMap" >
         SELECT
             <include refid="Dataset_All_Columns" />
         FROM dataset
         WHERE
-            <include refid="Dynamic_Query" />
+            <include refid="Dataset_Dynamic_Query" />
         ORDER BY modify_time DESC
         LIMIT #{pageInfo.startIndex}, #{pageInfo.pageSize}
-    </select>
-
-    <select id="countByCondition" resultType="Integer">
-        SELECT COUNT(1)
-        FROM dataset
-        WHERE
-            <include refid="Dynamic_Query" />
     </select>
 
 </mapper>
