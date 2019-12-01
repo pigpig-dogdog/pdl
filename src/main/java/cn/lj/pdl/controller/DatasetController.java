@@ -111,7 +111,7 @@ public class DatasetController {
     public Body uploadImage(@PathVariable Long id, @RequestParam("file") MultipartFile file,
                             @RequestParam(value = "isCoverImage", required = false) Boolean isCoverImage) throws IOException {
 
-        if (file.isEmpty()) {
+        if (file == null || file.isEmpty()) {
             throw new BizException(BizExceptionEnum.EMPTY_FILE);
         }
 

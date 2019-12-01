@@ -1,16 +1,14 @@
 package cn.lj.pdl.service.impl;
 
 import cn.lj.pdl.constant.Constants;
+import cn.lj.pdl.constant.WriteMode;
 import cn.lj.pdl.exception.BizException;
 import cn.lj.pdl.exception.BizExceptionEnum;
 import cn.lj.pdl.service.StorageService;
 import cn.lj.pdl.utils.FileUtil;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
-import com.aliyun.oss.model.DeleteObjectsRequest;
-import com.aliyun.oss.model.ListObjectsRequest;
-import com.aliyun.oss.model.OSSObjectSummary;
-import com.aliyun.oss.model.ObjectListing;
+import com.aliyun.oss.model.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -118,4 +116,27 @@ public class OssStorageServiceImpl implements StorageService {
         ossClient.shutdown();
         return true;
     }
+
+    @Override
+    public void write(String path, String content, WriteMode writeMode) {
+        OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
+        if (writeMode == WriteMode.APPEND) {
+            OSSObject ossObject = ossClient.getObject(bucketName, path);
+            if (ossObject != null) {
+                content = content + ossObject.toString();
+            }
+        }
+        ossClient.putObject(bucketName, path, new ByteArrayInputStream(content.getBytes()));
+        ossClient.shutdown();
+    }
+
+    @Override
+    public String read(String path) {
+        OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
+        OSSObject ossObject = ossClient.getObject(bucketName, path);
+        String content = ossObject == null ? null : ossObject.toString();
+        ossClient.shutdown();
+        return content;
+    }
+
 }

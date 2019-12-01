@@ -4,6 +4,7 @@ import cn.lj.pdl.dto.Body;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindException;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -50,6 +51,17 @@ public class GlobalExceptionHandler {
         return ResponseEntityUtil.buildFail(BizExceptionEnum.METHOD_ARGUMENT_NOT_VALID_EXCEPTION, summary);
     }
 
+    @ExceptionHandler(BindException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<Body> handleBindException(BindException e) {
+        // 汇总错误信息
+        String summary = e.getBindingResult().getAllErrors().stream()
+                .map(ObjectError::getDefaultMessage)
+                .collect(Collectors.joining(", "));
+
+        return ResponseEntityUtil.buildFail(BizExceptionEnum.METHOD_ARGUMENT_NOT_VALID_EXCEPTION, summary);
+    }
+
     /**
      * 业务相关的异常
      */
@@ -58,6 +70,9 @@ public class GlobalExceptionHandler {
         return ResponseEntityUtil.buildFail(e);
     }
 
+    /**
+     * 文件上传相关的异常
+     */
     @ExceptionHandler(MultipartException.class)
     public ResponseEntity<Body> handleMultipartException(MultipartException e) {
         return (e instanceof MaxUploadSizeExceededException)

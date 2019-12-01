@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.lj.pdl.mapper.AlgoTrainMapper">
+    <resultMap id="AlgoTrainResultMap" type="AlgoTrainDO">
+        <id     column="id"                  property="id"                jdbcType="BIGINT"    javaType="Long" />
+        <result column="create_time"         property="createTime"        jdbcType="TIMESTAMP" javaType="java.util.Date" />
+        <result column="modify_time"         property="modifyTime"        jdbcType="TIMESTAMP" javaType="java.util.Date" />
+        <result column="creator_name"        property="creatorName"       jdbcType="VARCHAR"   javaType="String" />
+        <result column="name"                property="name"              jdbcType="VARCHAR"   javaType="String" />
+        <result column="framework"           property="framework"         jdbcType="VARCHAR"   javaType="cn.lj.pdl.constant.Framework" />
+        <result column="entry_and_args"      property="entryAndArgs"      jdbcType="VARCHAR"   javaType="String" />
+        <result column="result_dir_path"     property="resultDirPath"     jdbcType="VARCHAR"   javaType="String" />
+        <result column="uuid"                property="uuid"              jdbcType="VARCHAR"   javaType="String" />
+        <result column="status"              property="status"            jdbcType="VARCHAR"   javaType="cn.lj.pdl.constant.TrainStatus" />
+        <result column="code_zip_file_path"   property="codeZipFilePath"   jdbcType="VARCHAR"   javaType="String" />
+        <result column="result_zip_file_url"  property="resultZipFileUrl"  jdbcType="VARCHAR"   javaType="String" />
+    </resultMap>
+
+    <sql id="AlgoTrain_All_Columns_Without_Id" >
+        create_time, modify_time, creator_name,
+        name, framework, entry_and_args,result_dir_path,uuid,
+        status, code_zip_file_path, result_zip_file_url
+    </sql>
+
+    <sql id="AlgoTrain_All_Columns" >
+        id, <include refid="AlgoTrain_All_Columns_Without_Id" />
+    </sql>
+
+    <sql id="AlgoTrain_Dynamic_Query">
+        TRUE
+        <if test="condition.id != null">
+            AND id = #{condition.id}
+        </if>
+        <if test="condition.creatorName != null">
+            AND creator_name LIKE concat ('%', #{condition.creatorName}, '%')
+        </if>
+        <if test="condition.name != null">
+            AND name LIKE concat('%', #{condition.name}, '%')
+        </if>
+        <if test="condition.framework != null">
+            AND algo_type = #{condition.framework}
+        </if>
+        <if test="condition.status != null">
+            AND classes_number = #{condition.status}
+        </if>
+    </sql>
+
+    <insert id="insert" parameterType="AlgoTrainDO" useGeneratedKeys="true" keyProperty="id" >
+        INSERT INTO algo_train
+            (<include refid="AlgoTrain_All_Columns_Without_Id" />)
+        VALUES
+            (now(), now(), #{creatorName},
+             #{name}, #{framework}, #{entryAndArgs}, #{resultDirPath}, #{uuid},
+             #{status}, #{codeZipFilePath}, #{resultZipFileUrl})
+    </insert>
+
+    <select id="findById" parameterType="Long" resultMap="AlgoTrainResultMap">
+        SELECT
+        <include refid="AlgoTrain_All_Columns" />
+        FROM algo_train
+        WHERE id = #{id}
+    </select>
+
+    <select id="countByCondition" resultType="Integer">
+        SELECT COUNT(1)
+        FROM algo_train
+        WHERE
+            <include refid="AlgoTrain_Dynamic_Query" />
+    </select>
+
+    <select id="findByCondition" resultMap="AlgoTrainResultMap">
+        SELECT
+            <include refid="AlgoTrain_All_Columns" />
+        FROM algo_train
+        WHERE
+            <include refid="AlgoTrain_Dynamic_Query" />
+        ORDER BY modify_time DESC
+        LIMIT #{pageInfo.startIndex}, #{pageInfo.pageSize}
+    </select>
+
+
+
+</mapper>

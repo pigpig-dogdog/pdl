@@ -21,6 +21,12 @@ public class Constants {
     private final static String DATASET_IMAGE_PATH_FORMAT = "datasets/%s/images/%s";
     private final static String DATASET_ANNOTATION_PATH_FORMAT = "datasets/%s/annotations/%s.xml";
 
+    private final static String ALGOTRAIN_ROOT_PATH = "algotrain/";
+    private final static String ALGOTRAIN_DIR_PATH_FORMAT = "algotrain/%s/";
+    private final static String ALGOTRAIN_CODE_ZIP_FILE_PATH_FORMAT = "algotrain/%s/code.zip";
+    private final static String ALGOTRAIN_STATUS_FILE_PATH_FORMAT = "algotrain/%s/status.txt";
+    private final static String ALGOTRAIN_RESULT_ZIP_FILE_PATH_FORMAT = "algotrain/%s/result.zip";
+
     public static String getDatasetRootPath() {
         return DATASET_ROOT_PATH;
     }
@@ -47,6 +53,26 @@ public class Constants {
 
     public static String getDatasetAnnotationPath(String datasetUuid, String fileName) {
         return String.format(DATASET_ANNOTATION_PATH_FORMAT, datasetUuid, fileName);
+    }
+
+    public static String getAlgoTrainRootPath() {
+        return ALGOTRAIN_ROOT_PATH;
+    }
+
+    public static String getAlgoTrainDirPath(String algoTrainUuid) {
+        return String.format(ALGOTRAIN_DIR_PATH_FORMAT, algoTrainUuid);
+    }
+
+    public static String getAlgoTrainCodeZipFilePath(String algoTrainUuid) {
+        return String.format(ALGOTRAIN_CODE_ZIP_FILE_PATH_FORMAT, algoTrainUuid);
+    }
+
+    public static String getAlgoTrainStatusFilePath(String algoTrainUuid) {
+        return String.format(ALGOTRAIN_STATUS_FILE_PATH_FORMAT, algoTrainUuid);
+    }
+
+    public static String getAlgoTrainResultZipFilePath(String algoTrainUuid) {
+        return String.format(ALGOTRAIN_RESULT_ZIP_FILE_PATH_FORMAT, algoTrainUuid);
     }
 
 }

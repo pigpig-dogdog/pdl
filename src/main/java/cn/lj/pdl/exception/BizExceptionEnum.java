@@ -51,18 +51,18 @@ public enum BizExceptionEnum {
     CLASSES_NAME_LIST_REPEAT("类名有重复", 3006, HttpStatus.BAD_REQUEST),
     DATASET_NOT_EXIST("数据集不存在", 3007, HttpStatus.BAD_REQUEST),
     NOT_THIS_DATASET_CREATOR("非数据集创建者无权删除", 3008, HttpStatus.BAD_REQUEST),
-    NOT_IMAGE_FILE("不是有效的图片文件", 3009, HttpStatus.BAD_REQUEST),
-    DIR_NAME_NOT_ENDSWITH_SLASH("目录名不是以反斜杠结尾", 3010, HttpStatus.INTERNAL_SERVER_ERROR),
-    IMAGE_NOT_EXIST("图片不存在", 3011, HttpStatus.BAD_REQUEST),
-    IMAGE_NOT_BELONG_TO_THIS_DATASET("图片不属于该数据集", 3012, HttpStatus.BAD_REQUEST),
+    DIR_NAME_NOT_ENDSWITH_SLASH("目录名不是以反斜杠结尾", 3009, HttpStatus.INTERNAL_SERVER_ERROR),
+    IMAGE_NOT_EXIST("图片不存在", 3010, HttpStatus.BAD_REQUEST),
+    IMAGE_NOT_BELONG_TO_THIS_DATASET("图片不属于该数据集", 3011, HttpStatus.BAD_REQUEST),
 
     /**
      * 文件上传
      */
-    EMPTY_FILE("空文件", 4000, HttpStatus.BAD_REQUEST),
-    FILE_SIZE_TOO_LARGE("文件大小不可超过10MB", 4001, HttpStatus.BAD_REQUEST),
-    UPLOAD_MULTIPART_FILE_EXCEPTION("文件上传异常: ", 4002, HttpStatus.INTERNAL_SERVER_ERROR),
-
+    EMPTY_FILE("文件不可为空", 4000, HttpStatus.BAD_REQUEST),
+    NOT_IMAGE_FILE("不是有效的图片文件", 4001, HttpStatus.BAD_REQUEST),
+    NOT_ZIP_FILE("不是zip压缩文件", 4002, HttpStatus.BAD_REQUEST),
+    FILE_SIZE_TOO_LARGE("文件大小不可超过10MB", 4003, HttpStatus.BAD_REQUEST),
+    UPLOAD_MULTIPART_FILE_EXCEPTION("文件上传异常: ", 4004, HttpStatus.INTERNAL_SERVER_ERROR),
 
     ;
 

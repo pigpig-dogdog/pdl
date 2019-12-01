@@ -1,5 +1,7 @@
 package cn.lj.pdl.service;
 
+import cn.lj.pdl.constant.WriteMode;
+
 import java.net.URL;
 
 /**
@@ -47,4 +49,21 @@ public interface StorageService {
      * @return Boolean
      */
     Boolean deleteDir(String path);
+
+    /**
+     * 写文件
+     *
+     * @param path 路径
+     * @param content 内容
+     * @param writeMode 写模式（覆盖或追加）
+     */
+    void write(String path, String content, WriteMode writeMode);
+
+    /**
+     * 读文件
+     *
+     * @param path 路径
+     * @return String
+     */
+    String read(String path);
 }

@@ -10,9 +10,12 @@ import org.springframework.web.multipart.MultipartFile;
  */
 public class FileUtil {
 
-
     public static boolean isImageFile(MultipartFile file) {
         return StringUtils.startsWithIgnoreCase(file.getContentType(), "image/");
+    }
+
+    public static boolean isZipFile(MultipartFile file) {
+        return "application/zip".equals(file.getContentType());
     }
 
     public static String getExtension(MultipartFile file) {
