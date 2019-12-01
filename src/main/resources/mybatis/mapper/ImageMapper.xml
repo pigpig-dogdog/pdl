@@ -27,11 +27,11 @@
         <if test="condition.id != null">
             AND id = #{condition.id}
         </if>
-        <if test="condition.dataset_id != null">
-            AND dataset_id = #{condition.dataset_id}
+        <if test="condition.datasetId != null">
+            AND dataset_id = #{condition.datasetId}
         </if>
-        <if test="condition.is_annotated != null">
-            AND is_annotated = #{condition.is_annotated}
+        <if test="condition.annotated != null">
+            AND is_annotated = #{condition.annotated}
         </if>
         <if test="condition.annotation != null">
             AND annotation = #{condition.annotation}
