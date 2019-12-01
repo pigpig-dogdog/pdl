@@ -54,7 +54,7 @@ public class AlgoTrainDO {
     private String resultDirPath;
 
     /**
-     * uui唯一标识
+     * uuid唯一标识
      */
     private String uuid;
 
