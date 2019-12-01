@@ -59,6 +59,13 @@ public class DatasetController {
         return Body.buildSuccess(response);
     }
 
+    @GetMapping("/{id}")
+    @ApiOperation(value = "数据集详情")
+    public Body<DatasetDO> detail(@PathVariable Long id) {
+        DatasetDO datasetDO = datasetService.detail(id);
+        return Body.buildSuccess(datasetDO);
+    }
+
     @PostMapping("/create")
     @ApiOperation(value = "创建数据集")
     @ApiResponses(value = {

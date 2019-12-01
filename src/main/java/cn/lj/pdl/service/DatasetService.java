@@ -41,6 +41,14 @@ public interface DatasetService {
                                  String creatorName, String name, AlgoType algoType);
 
     /**
+     * 数据集详情
+     *
+     * @param id 数据集id
+     * @return DatasetDO
+     */
+    DatasetDO detail(Long id);
+
+    /**
      * 给数据集上传图片
      *
      * @param datasetId 数据集id

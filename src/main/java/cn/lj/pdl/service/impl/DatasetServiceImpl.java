@@ -69,6 +69,18 @@ public class DatasetServiceImpl implements DatasetService {
     }
 
     @Override
+    public DatasetDO detail(Long id) {
+        DatasetDO datasetDO = datasetMapper.findById(id);
+
+        // id 不存在
+        if (datasetDO == null) {
+            throw new BizException(BizExceptionEnum.DATASET_NOT_EXIST);
+        }
+
+        return datasetDO;
+    }
+
+    @Override
     public void create(DatasetCreateRequest request, String requestUsername) {
         // 校验参数
         verifyDatasetCreateRequest(request);
