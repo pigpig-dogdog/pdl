@@ -21,11 +21,16 @@ public class Constants {
     private final static String DATASET_IMAGE_PATH_FORMAT = "datasets/%s/images/%s";
     private final static String DATASET_ANNOTATION_PATH_FORMAT = "datasets/%s/annotations/%s.xml";
 
-    private final static String ALGOTRAIN_ROOT_PATH = "algotrain/";
-    private final static String ALGOTRAIN_DIR_PATH_FORMAT = "algotrain/%s/";
-    private final static String ALGOTRAIN_CODE_ZIP_FILE_PATH_FORMAT = "algotrain/%s/code.zip";
-    private final static String ALGOTRAIN_STATUS_FILE_PATH_FORMAT = "algotrain/%s/status.txt";
-    private final static String ALGOTRAIN_RESULT_ZIP_FILE_PATH_FORMAT = "algotrain/%s/result.zip";
+    private final static String ALGOTRAIN_ROOT_PATH = "algo-train/";
+    private final static String ALGOTRAIN_DIR_PATH_FORMAT = "algo-train/%s/";
+    private final static String ALGOTRAIN_CODE_ZIP_FILE_PATH_FORMAT = "algo-train/%s/code.zip";
+    private final static String ALGOTRAIN_STATUS_FILE_PATH_FORMAT = "algo-train/%s/status.txt";
+    private final static String ALGOTRAIN_RESULT_ZIP_FILE_PATH_FORMAT = "algo-train/%s/result.zip";
+
+    private final static String ALGODEPLOY_ROOT_PATH = "algo-deploy/";
+    private final static String ALGODEPLOY_DIR_PATH_FORMAT = "algo-deploy/%s/";
+    private final static String ALGODEPLOY_CODE_ZIP_FILE_PATH_FORMAT = "algo-deploy/%s/code.zip";
+    private final static String ALGODEPLOY_STATUS_FILE_PATH_FORMAT = "algo-deploy/%s/status.txt";
 
     public static String getDatasetRootPath() {
         return DATASET_ROOT_PATH;
@@ -73,6 +78,22 @@ public class Constants {
 
     public static String getAlgoTrainResultZipFilePath(String algoTrainUuid) {
         return String.format(ALGOTRAIN_RESULT_ZIP_FILE_PATH_FORMAT, algoTrainUuid);
+    }
+
+    public static String getAlgoDeployRootPath() {
+        return ALGODEPLOY_ROOT_PATH;
+    }
+
+    public static String getAlgoDeployDirPath(String algoDeployUuid) {
+        return String.format(ALGODEPLOY_DIR_PATH_FORMAT, algoDeployUuid);
+    }
+
+    public static String getAlgoDeployCodeZipFilePath(String algoDeployUuid) {
+        return String.format(ALGODEPLOY_CODE_ZIP_FILE_PATH_FORMAT, algoDeployUuid);
+    }
+
+    public static String getAlgoDeployStatusFilePath(String algoDeployUuid) {
+        return String.format(ALGODEPLOY_STATUS_FILE_PATH_FORMAT, algoDeployUuid);
     }
 
 }

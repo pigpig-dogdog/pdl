@@ -15,5 +15,6 @@
         <typeAlias alias="DatasetDO"   type="cn.lj.pdl.model.DatasetDO" />
         <typeAlias alias="ImageDO"     type="cn.lj.pdl.model.ImageDO" />
         <typeAlias alias="AlgoTrainDO" type="cn.lj.pdl.model.AlgoTrainDO" />
+        <typeAlias alias="AlgoDeployDO" type="cn.lj.pdl.model.AlgoDeployDO" />
     </typeAliases>
 </configuration>
