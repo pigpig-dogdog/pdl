@@ -1,6 +1,7 @@
 package cn.lj.pdl.service.impl;
 
 import cn.lj.pdl.constant.Constants;
+import cn.lj.pdl.constant.Framework;
 import cn.lj.pdl.constant.TrainStatus;
 import cn.lj.pdl.constant.WriteMode;
 import cn.lj.pdl.dto.PageInfo;
@@ -68,12 +69,17 @@ public class AlgoTrainServiceImpl implements AlgoTrainService {
     }
 
     @Override
-    public PageResponse<AlgoTrainDO> list(Integer pageNumber, Integer pageSize) {
+    public PageResponse<AlgoTrainDO> list(Integer pageNumber, Integer pageSize,
+                                          String creatorName, String name, Framework framework, TrainStatus status) {
         // 分页信息
         PageInfo pageInfo = new PageInfo(pageNumber, pageSize);
 
         // 条件查询信息
         AlgoTrainDO condition = new AlgoTrainDO();
+        condition.setCreatorName(creatorName);
+        condition.setName(name);
+        condition.setFramework(framework);
+        condition.setStatus(status);
 
         // 统计符合条件的数据行数
         Integer totalItemsNumber = algoTrainMapper.countByCondition(condition, pageInfo);

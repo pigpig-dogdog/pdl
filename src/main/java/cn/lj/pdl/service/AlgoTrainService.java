@@ -1,5 +1,7 @@
 package cn.lj.pdl.service;
 
+import cn.lj.pdl.constant.Framework;
+import cn.lj.pdl.constant.TrainStatus;
 import cn.lj.pdl.dto.PageResponse;
 import cn.lj.pdl.dto.algotrain.AlgoTrainCreateRequest;
 import cn.lj.pdl.model.AlgoTrainDO;
@@ -27,8 +29,13 @@ public interface AlgoTrainService {
      *
      * @param pageNumber 页号
      * @param pageSize 每页记录数
+     * @param creatorName 创建者用户名
+     * @param name 训练任务名称
+     * @param framework 深度学习框架
+     * @param status 训练状态
      * @return PageResponse
      */
-    PageResponse<AlgoTrainDO> list(Integer pageNumber, Integer pageSize);
+    PageResponse<AlgoTrainDO> list(Integer pageNumber, Integer pageSize,
+                                   String creatorName, String name, Framework framework, TrainStatus status);
 
 }
