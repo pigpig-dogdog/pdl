@@ -49,7 +49,7 @@ public class AlgoTrainController {
             @ApiImplicitParam(name = "pageNumber", value = "查询页码（默认1）", paramType = "query", dataType = "int", example = "1"),
             @ApiImplicitParam(name = "pageSize", value = "每页数量（默认10）", paramType = "query", dataType = "int", example = "10"),
             @ApiImplicitParam(name = "creatorName", value = "创建者名称", paramType = "query", dataType = "String"),
-            @ApiImplicitParam(name = "name", value = "数据集名称", paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "name", value = "训练任务名称", paramType = "query", dataType = "String"),
             @ApiImplicitParam(name = "framework", value = "深度学习框架", paramType = "query", dataType = "String"),
             @ApiImplicitParam(name = "status", value = "训练状态", paramType = "query", dataType = "String")
     })
