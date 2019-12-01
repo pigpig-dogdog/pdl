@@ -14,7 +14,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface AlgoTrainService {
     /**
-     * (此处填写方法描述)
+     * 创建训练任务
      *
      * @param request 请求
      * @param codeZipFile 代码压缩文件

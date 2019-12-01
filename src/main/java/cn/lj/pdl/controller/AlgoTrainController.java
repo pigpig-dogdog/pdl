@@ -12,6 +12,7 @@ import cn.lj.pdl.utils.FileUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,6 +32,7 @@ public class AlgoTrainController {
     private UserService userService;
     private AlgoTrainService algoTrainService;
 
+    @Autowired
     public AlgoTrainController(UserService userService,
                                AlgoTrainService algoTrainService) {
         this.userService = userService;
