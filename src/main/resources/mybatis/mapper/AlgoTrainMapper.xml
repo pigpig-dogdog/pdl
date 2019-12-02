@@ -38,7 +38,7 @@
             AND name LIKE concat('%', #{condition.name}, '%')
         </if>
         <if test="condition.framework != null">
-            AND algo_type = #{condition.framework}
+            AND framework = #{condition.framework}
         </if>
         <if test="condition.status != null">
             AND classes_number = #{condition.status}
