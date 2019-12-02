@@ -15,7 +15,7 @@ public class FileUtil {
     }
 
     public static boolean isZipFile(MultipartFile file) {
-        return "application/zip".equals(file.getContentType());
+        return file.getContentType() != null && file.getContentType().contains("zip");
     }
 
     public static String getExtension(MultipartFile file) {
