@@ -77,4 +77,10 @@ public class AlgoTrainController {
         return Body.buildSuccess(null);
     }
 
+    @GetMapping("/{id}/log")
+    @ApiOperation("获取训练任务日志")
+    public Body<String> getLog(@PathVariable Long id) {
+        String log = algoTrainService.getLog(id);
+        return Body.buildSuccess(log);
+    }
 }

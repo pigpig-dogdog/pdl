@@ -1,5 +1,6 @@
 package cn.lj.pdl.service.impl;
 
+import cn.lj.pdl.component.K8sComponent;
 import cn.lj.pdl.constant.Constants;
 import cn.lj.pdl.constant.DeployStatus;
 import cn.lj.pdl.constant.Framework;
@@ -51,7 +52,15 @@ public class AlgoDeployServiceImpl implements AlgoDeployService {
 
         // 文件服务 设置部署任务状态
         String statusFilePath = Constants.getAlgoDeployStatusFilePath(uuid);
-        storageService.write(statusFilePath, DeployStatus.WAITING.toString(), WriteMode.OVERWRITE);
+        storageService.write(statusFilePath, DeployStatus.SERVING.toString(), WriteMode.OVERWRITE);
+
+        // k8s服务
+        List<String> args = new ArrayList<String>() {{
+            add("service/main.py");
+            add("--user_code_oss_path=" + codeZipFilePath);
+            add("--main_class_path=" + request.getMainClassPath());
+        }};
+        String serviceUrl = K8sComponent.deployAndService(uuid, request.getInstanceNumber(), K8sComponent.IMAGE_ALGO_SERVICE, 5000, "python", args);
 
         AlgoDeployDO algoDeployDO = new AlgoDeployDO();
         algoDeployDO.setCreatorName(requestUsername);
@@ -60,7 +69,9 @@ public class AlgoDeployServiceImpl implements AlgoDeployService {
         algoDeployDO.setCodeZipFilePath(codeZipFilePath);
         algoDeployDO.setMainClassPath(request.getMainClassPath());
         algoDeployDO.setUuid(uuid);
-        algoDeployDO.setStatus(DeployStatus.WAITING);
+        algoDeployDO.setStatus(DeployStatus.SERVING);
+        algoDeployDO.setServiceUrl(serviceUrl);
+        algoDeployDO.setInstanceNumber(request.getInstanceNumber());
 
         algoDeployMapper.insert(algoDeployDO);
     }

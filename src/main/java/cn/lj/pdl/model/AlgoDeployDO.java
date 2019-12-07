@@ -53,6 +53,11 @@ public class AlgoDeployDO {
     private String mainClassPath;
 
     /**
+     * 在线化服务的实例数目
+     */
+    private Integer instanceNumber;
+
+    /**
      * uuid唯一标识
      */
     private String uuid;
@@ -61,4 +66,9 @@ public class AlgoDeployDO {
      * 部署状态
      */
     private DeployStatus status;
+
+    /**
+     * 在线化服务的url
+     */
+    private String serviceUrl;
 }

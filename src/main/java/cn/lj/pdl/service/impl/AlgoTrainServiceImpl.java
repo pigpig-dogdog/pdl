@@ -1,5 +1,6 @@
 package cn.lj.pdl.service.impl;
 
+import cn.lj.pdl.component.K8sComponent;
 import cn.lj.pdl.constant.Constants;
 import cn.lj.pdl.constant.Framework;
 import cn.lj.pdl.constant.TrainStatus;
@@ -52,7 +53,17 @@ public class AlgoTrainServiceImpl implements AlgoTrainService {
 
         // 文件服务 设置训练任务状态
         String statusFilePath = Constants.getAlgoTrainStatusFilePath(uuid);
-        storageService.write(statusFilePath, TrainStatus.WAITING.toString(), WriteMode.OVERWRITE);
+        storageService.write(statusFilePath, TrainStatus.SUCCESS.toString(), WriteMode.OVERWRITE);
+
+        // k8s服务
+        List<String> args = new ArrayList<String>() {{
+            add("train/main.py");
+            add("--user_code_oss_path=" + codeZipFilePath);
+            add("--entry_and_arg=" + request.getEntryAndArgs());
+            add("--result_dir_path=" + request.getResultDirPath());
+            add("--result_oss_path=" + Constants.getAlgoTrainResultZipFilePath(uuid));
+        }};
+        K8sComponent.runJob(uuid, K8sComponent.IMAGE_ALGO_SERVICE,"python", args);
 
         AlgoTrainDO algoTrainDO = new AlgoTrainDO();
         algoTrainDO.setCreatorName(requestUsername);
@@ -61,7 +72,7 @@ public class AlgoTrainServiceImpl implements AlgoTrainService {
         algoTrainDO.setEntryAndArgs(request.getEntryAndArgs());
         algoTrainDO.setResultDirPath(request.getResultDirPath());
         algoTrainDO.setUuid(uuid);
-        algoTrainDO.setStatus(TrainStatus.WAITING);
+        algoTrainDO.setStatus(TrainStatus.SUCCESS);
         algoTrainDO.setCodeZipFilePath(codeZipFilePath);
         algoTrainDO.setResultZipFileUrl(null);
 
@@ -93,6 +104,12 @@ public class AlgoTrainServiceImpl implements AlgoTrainService {
                 : algoTrainMapper.findByCondition(condition, pageInfo);
 
         return new PageResponse<>(pageNumber, pageSize, totalItemsNumber, totalPagesNumber, list);
+    }
+
+    @Override
+    public String getLog(Long id) {
+        AlgoTrainDO algoTrainDO = algoTrainMapper.findById(id);
+        return K8sComponent.getJobLog(algoTrainDO.getUuid());
     }
 
 }

@@ -38,4 +38,11 @@ public interface AlgoTrainService {
     PageResponse<AlgoTrainDO> list(Integer pageNumber, Integer pageSize,
                                    String creatorName, String name, Framework framework, TrainStatus status);
 
+    /**
+     * 获取训练日志
+     *
+     * @param id 训练id
+     * @return String 日志
+     */
+    String getLog(Long id);
 }

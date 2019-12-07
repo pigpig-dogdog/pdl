@@ -56,7 +56,7 @@
             <version>2.0.0</version>
         </dependency>
         <dependency>
-            <!-- Use MySQL Connector-J -->
+            <!-- MySQL Connector-J -->
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
         </dependency>
@@ -67,15 +67,22 @@
             <version>1.1.0</version>
         </dependency>
         <dependency>
+            <!-- alibaba fastjson -->
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
             <version>1.2.58</version>
         </dependency>
-        <!-- 阿里云OSS-->
         <dependency>
+            <!-- aliyun OSS -->
             <groupId>com.aliyun.oss</groupId>
             <artifactId>aliyun-sdk-oss</artifactId>
             <version>3.8.0</version>
+        </dependency>
+        <dependency>
+            <!-- fabric8 kubernetes client -->
+            <groupId>io.fabric8</groupId>
+            <artifactId>kubernetes-client</artifactId>
+            <version>4.6.4</version>
         </dependency>
         <dependency>
             <!-- Automatically restart whenever files on the classpath change -->

@@ -30,5 +30,7 @@ public class FileUtil {
         return StringUtils.trimTrailingCharacter(path, '/');
     }
 
-
+    public static String getResourcesFilePath(String relativePath) {
+        return FileUtil.class.getClassLoader().getResource(relativePath).getPath();
+    }
 }

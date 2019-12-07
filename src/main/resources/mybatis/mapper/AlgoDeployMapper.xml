@@ -12,11 +12,13 @@
         <result column="main_class_path"     property="mainClassPath"     jdbcType="VARCHAR"   javaType="String" />
         <result column="uuid"                property="uuid"              jdbcType="VARCHAR"   javaType="String" />
         <result column="status"              property="status"            jdbcType="VARCHAR"   javaType="cn.lj.pdl.constant.DeployStatus" />
+        <result column="service_url"         property="serviceUrl"        jdbcType="VARCHAR"   javaType="String" />
+        <result column="instance_number"     property="instanceNumber"    jdbcType="INTEGER"   javaType="Integer" />
     </resultMap>
 
     <sql id="AlgoDeploy_All_Columns_Without_Id" >
         create_time, modify_time, creator_name,
-        name, framework, code_zip_file_path, main_class_path, uuid, status
+        name, framework, code_zip_file_path, main_class_path, uuid, status, service_url, instance_number
     </sql>
 
     <sql id="AlgoDeploy_All_Columns" >
@@ -47,7 +49,7 @@
             (<include refid="AlgoDeploy_All_Columns_Without_Id" />)
         VALUES
             (now(), now(), #{creatorName},
-            #{name}, #{framework}, #{codeZipFilePath}, #{mainClassPath}, #{uuid}, #{status})
+            #{name}, #{framework}, #{codeZipFilePath}, #{mainClassPath}, #{uuid}, #{status}, #{serviceUrl}, #{instanceNumber})
     </insert>
 
     <select id="findById" parameterType="Long" resultMap="AlgoDeployResultMap">

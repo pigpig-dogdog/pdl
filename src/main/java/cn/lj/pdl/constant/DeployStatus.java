@@ -1,5 +1,9 @@
 package cn.lj.pdl.constant;
 
+/**
+ * @author luojian
+ * @date 2019/12/7
+ */
 public enum DeployStatus {
     /**
      * 等待
