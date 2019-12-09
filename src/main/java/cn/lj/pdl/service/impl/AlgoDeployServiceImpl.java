@@ -38,8 +38,7 @@ public class AlgoDeployServiceImpl implements AlgoDeployService {
 
     @Override
     public void create(AlgoDeployCreateRequest request, byte[] codeZipFile, String requestUsername) {
-        String uuid = CommonUtil.generateUuid();
-
+        String uuid = CommonUtil.generateUuidStartWithAlphabet();
         // 文件服务 创建目录
         storageService.createDirs(
                 Constants.getAlgoDeployRootPath(),
