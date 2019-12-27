@@ -1,9 +1,10 @@
 package cn.lj.pdl.service.impl;
 
 import cn.lj.pdl.constant.AlgoType;
-import cn.lj.pdl.constant.Constants;
+import cn.lj.pdl.constant.StorageConstants;
 import cn.lj.pdl.dto.PageInfo;
 import cn.lj.pdl.dto.PageResponse;
+import cn.lj.pdl.dto.dataset.BatchImagesResponse;
 import cn.lj.pdl.dto.dataset.DatasetCreateRequest;
 import cn.lj.pdl.exception.BizException;
 import cn.lj.pdl.exception.BizExceptionEnum;
@@ -11,9 +12,11 @@ import cn.lj.pdl.mapper.DatasetMapper;
 import cn.lj.pdl.mapper.ImageMapper;
 import cn.lj.pdl.model.DatasetDO;
 import cn.lj.pdl.model.ImageDO;
+import cn.lj.pdl.runnable.UploadImagesZipRunnable;
 import cn.lj.pdl.service.DatasetService;
 import cn.lj.pdl.service.StorageService;
 import cn.lj.pdl.utils.CommonUtil;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +25,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -30,6 +37,10 @@ import java.util.stream.Collectors;
  */
 @Service
 public class DatasetServiceImpl implements DatasetService {
+
+    private ExecutorService executorService = new ThreadPoolExecutor(0, 50, 60L, TimeUnit.SECONDS,
+            new SynchronousQueue<>(), new ThreadFactoryBuilder().setNameFormat("uploadImagesZip-thread-%d").build());
+
     private DatasetMapper datasetMapper;
     private ImageMapper imageMapper;
     private StorageService storageService;
@@ -44,6 +55,11 @@ public class DatasetServiceImpl implements DatasetService {
     }
 
     @Override
+    public boolean exist(Long id) {
+        return datasetMapper.existsById(id);
+    }
+
+    @Override
     public PageResponse<DatasetDO> list(Integer pageNumber, Integer pageSize, String creatorName, String name, AlgoType algoType) {
         // 分页信息
         PageInfo pageInfo = new PageInfo(pageNumber, pageSize);
@@ -55,7 +71,7 @@ public class DatasetServiceImpl implements DatasetService {
         condition.setAlgoType(algoType);
 
         // 统计符合条件的数据行数
-        Integer totalItemsNumber = datasetMapper.countByCondition(condition, pageInfo);
+        Integer totalItemsNumber = datasetMapper.countByCondition(condition);
 
         // 计算总页数, 起码 1 页(即使数据行数 == 0)
         Integer totalPagesNumber = Math.max(1, (int) Math.ceil(totalItemsNumber * 1.0 / pageSize));
@@ -102,10 +118,10 @@ public class DatasetServiceImpl implements DatasetService {
 
         // 文件服务 创建数据集目录树
         storageService.createDirs(
-                Constants.getDatasetRootPath(),
-                Constants.getDatasetDirPath(datasetDO.getUuid()),
-                Constants.getDatasetImagesDirPath(datasetDO.getUuid()),
-                Constants.getDatasetAnnotationsDirPath(datasetDO.getUuid())
+                StorageConstants.getDatasetRootPath(),
+                StorageConstants.getDatasetDirPath(datasetDO.getUuid()),
+                StorageConstants.getDatasetImagesDirPath(datasetDO.getUuid()),
+                StorageConstants.getDatasetAnnotationsDirPath(datasetDO.getUuid())
         );
 
     }
@@ -122,7 +138,7 @@ public class DatasetServiceImpl implements DatasetService {
 
         // 不是该数据集的创建者
         if (!datasetDO.getCreatorName().equals(requestUsername)) {
-            throw new BizException(BizExceptionEnum.NOT_THIS_DATASET_CREATOR);
+            throw new BizException(BizExceptionEnum.USER_IS_NOT_CREATOR);
         }
 
         // dataset表 删除行
@@ -130,7 +146,7 @@ public class DatasetServiceImpl implements DatasetService {
         datasetMapper.delete(id);
 
         // 文件服务 删除数据集目录
-        storageService.deleteDir(Constants.getDatasetDirPath(datasetDO.getUuid()));
+        storageService.deleteDir(StorageConstants.getDatasetDirPath(datasetDO.getUuid()));
     }
 
     @Override
@@ -144,7 +160,7 @@ public class DatasetServiceImpl implements DatasetService {
         condition.setAnnotated(annotated);
 
         // 统计符合条件的数据行数
-        Integer totalItemsNumber = imageMapper.countByCondition(condition, pageInfo);
+        Integer totalItemsNumber = imageMapper.countByCondition(condition);
 
         // 计算总页数, 起码 1 页(即使数据行数 == 0)
         Integer totalPagesNumber = Math.max(1, (int) Math.ceil(totalItemsNumber * 1.0 / pageSize));
@@ -168,7 +184,7 @@ public class DatasetServiceImpl implements DatasetService {
         }
 
         String fileName = CommonUtil.generateUuid() + "." + extension;
-        String datasetImagePath = Constants.getDatasetImagePath(datasetDO.getUuid(), fileName);
+        String datasetImagePath = StorageConstants.getDatasetImagePath(datasetDO.getUuid(), fileName);
         // 文件服务 上传图片
         URL url = storageService.uploadFile(datasetImagePath, image);
 
@@ -179,10 +195,24 @@ public class DatasetServiceImpl implements DatasetService {
         imageDO.setAnnotated(false);
         imageDO.setAnnotation(null);
         imageDO.setUrl(url.toString());
-
+        imageDO.setClusterNumber(null);
         // image表 插入行, 同时更新所属数据集的images_number++, 已经一起写在sql里面了
         imageMapper.insert(imageDO);
-}
+    }
+
+    @Override
+    public void uploadImagesZip(Long datasetId, String zipFilePath, String requestUsername) {
+        executorService.execute(
+                new UploadImagesZipRunnable(
+                        datasetMapper,
+                        imageMapper,
+                        storageService,
+                        datasetId,
+                        zipFilePath,
+                        requestUsername
+                )
+        );
+    }
 
     @Override
     public void uploadCoverImage(Long datasetId, byte[] image, String extension) {
@@ -194,7 +224,7 @@ public class DatasetServiceImpl implements DatasetService {
             throw new BizException(BizExceptionEnum.DATASET_NOT_EXIST);
         }
 
-        String datasetCoverImagePath = Constants.getDatasetCoverImagePath(datasetDO.getUuid(), extension);
+        String datasetCoverImagePath = StorageConstants.getDatasetCoverImagePath(datasetDO.getUuid(), extension);
         URL url = storageService.uploadFile(datasetCoverImagePath, image);
 
         // 封面图片信息不需要插入image表，只需要更新dataset表对应行即可
@@ -215,11 +245,11 @@ public class DatasetServiceImpl implements DatasetService {
 
         // 不是该数据集的创建者
         if (!datasetDO.getCreatorName().equals(requestUsername)) {
-            throw new BizException(BizExceptionEnum.NOT_THIS_DATASET_CREATOR);
+            throw new BizException(BizExceptionEnum.USER_IS_NOT_CREATOR);
         }
 
         // 文件服务 删除对应文件
-        storageService.deleteFile(Constants.getDatasetImagePath(datasetDO.getUuid(), imageDO.getFilename()));
+        storageService.deleteFile(StorageConstants.getDatasetImagePath(datasetDO.getUuid(), imageDO.getFilename()));
 
         // image表 插入行, 同时更新所属数据集的images_number--, 已经一起写在sql里面了
         imageMapper.delete(imageId);
@@ -235,14 +265,14 @@ public class DatasetServiceImpl implements DatasetService {
         switch (request.getAlgoType()) {
             // 对于分类任务，类别数目小于2是不允许的
             case CLASSIFICATION:
-                if (request.getClassesNumber() < Constants.CLASSIFICATION_MIN_CLASSES_NUMBER) {
+                if (request.getClassesNumber() < 2) {
                     throw new BizException(BizExceptionEnum.CLASSIFICATION_CLASSES_NUMBER_LESS_THAN_TWO);
                 }
                 break;
 
             // 对于检测任务，类别数目小于1是不允许的
             case DETECTION:
-                if (request.getClassesNumber() < Constants.DETECTION_MIN_CLASSES_NUMBER) {
+                if (request.getClassesNumber() < 1) {
                     throw new BizException(BizExceptionEnum.DETECTION_CLASSES_NUMBER_LESS_THAN_ONE);
                 }
                 break;
@@ -263,5 +293,45 @@ public class DatasetServiceImpl implements DatasetService {
             throw new BizException(BizExceptionEnum.CLASSES_NAME_LIST_REPEAT);
         }
     }
+
+
+    @Override
+    public ImageDO getPrevImage(Long datasetId, Long currentImageId) {
+        return imageMapper.getPrevImage(datasetId, currentImageId);
+    }
+
+    @Override
+    public ImageDO getNextImage(Long datasetId, Long currentImageId) {
+        return imageMapper.getNextImage(datasetId, currentImageId);
+    }
+
+    @Override
+    public BatchImagesResponse getNextBatchUnannotatedImages(Long datasetId, Long startImageId, Integer batchSize, Integer clusterNumber) {
+
+        Integer classesNumber = datasetMapper.findById(datasetId).getClassesNumber();
+
+        List<ImageDO> list = imageMapper.getNextBatchUnannotatedImages(datasetId, startImageId, batchSize, clusterNumber);
+        while (list == null || list.isEmpty()) {
+            clusterNumber = (clusterNumber == null || clusterNumber + 1 == classesNumber) ? null : clusterNumber + 1;
+            list = imageMapper.getNextBatchUnannotatedImages(datasetId, startImageId, batchSize, clusterNumber);
+            if (clusterNumber == null && list.isEmpty()) {
+                break;
+            }
+        }
+
+        startImageId = list.isEmpty() ? Long.MAX_VALUE : list.get(list.size() - 1).getId();
+
+        if (list.size() < batchSize) {
+            clusterNumber = (clusterNumber == null || clusterNumber + 1 == classesNumber) ? null : clusterNumber + 1;
+            startImageId = clusterNumber == null ? Long.MAX_VALUE : 0L;
+        }
+
+        BatchImagesResponse response = new BatchImagesResponse();
+        response.setStartImageId(startImageId);
+        response.setClusterNumber(clusterNumber);
+        response.setList(list);
+        return response;
+    }
+
 
 }

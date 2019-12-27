@@ -2,6 +2,7 @@ package cn.lj.pdl.service;
 
 import cn.lj.pdl.constant.AlgoType;
 import cn.lj.pdl.dto.PageResponse;
+import cn.lj.pdl.dto.dataset.BatchImagesResponse;
 import cn.lj.pdl.dto.dataset.DatasetCreateRequest;
 import cn.lj.pdl.model.DatasetDO;
 import cn.lj.pdl.model.ImageDO;
@@ -11,6 +12,15 @@ import cn.lj.pdl.model.ImageDO;
  * @date 2019/11/25
  */
 public interface DatasetService {
+
+    /**
+     * 查询数据集是否存在
+     *
+     * @param id 数据集id
+     * @return boolean
+     */
+    boolean exist(Long id);
+
     /**
      * 创建数据集
      *
@@ -59,6 +69,15 @@ public interface DatasetService {
     void uploadImage(Long datasetId, byte[] image, String extension, String requestUsername);
 
     /**
+     * 给数据集上传多张图片（压缩包形式）
+     *
+     * @param datasetId 数据集id
+     * @param zipFilePath 压缩文件保存在本地的路径
+     * @param requestUsername 发起请求的用户名
+     */
+    void uploadImagesZip(Long datasetId, String zipFilePath, String requestUsername);
+
+    /**
      * 给数据集删除图片
      *
      * @param imageId 图片id
@@ -88,4 +107,33 @@ public interface DatasetService {
     PageResponse<ImageDO> listImages(Long datasetId,
                                      Integer pageNumber, Integer pageSize,
                                      Boolean annotated);
+
+    /**
+     * 获取上一张图片
+     *
+     * @param datasetId 数据集id
+     * @param currentImageId 当前图片的id
+     * @return ImageDO
+     */
+    ImageDO getPrevImage(Long datasetId, Long currentImageId);
+
+    /**
+     * 获取下一张图片
+     *
+     * @param datasetId 数据集id
+     * @param currentImageId 当前图片的id
+     * @return ImageDO
+     */
+    ImageDO getNextImage(Long datasetId, Long currentImageId);
+
+    /**
+     * 获取下一批未标注的图片
+     *
+     * @param datasetId 数据集id
+     * @param startImageId 起始图片id
+     * @param batchSize 批大小
+     * @param clusterNumber 聚类类别
+     * @return BatchImagesResponse
+     */
+    BatchImagesResponse getNextBatchUnannotatedImages(Long datasetId, Long startImageId, Integer batchSize, Integer clusterNumber);
 }

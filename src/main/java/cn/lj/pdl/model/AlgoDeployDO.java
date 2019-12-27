@@ -55,7 +55,12 @@ public class AlgoDeployDO {
     /**
      * 在线化服务的实例数目
      */
-    private Integer instanceNumber;
+    private Integer replicas;
+
+    /**
+     * 在线化服务的可用实例数目
+     */
+    private Integer availableReplicas;
 
     /**
      * uuid唯一标识

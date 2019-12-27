@@ -30,5 +30,5 @@ public class AlgoDeployCreateRequest {
     @ApiModelProperty(value = "实例数目", required = true, example = "1", position = 4)
     @Min(value = 1, message = "实例数目最小为1")
     @Max(value = 10, message = "实例数目最大为10")
-    private Integer instanceNumber;
+    private Integer replicas;
 }

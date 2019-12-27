@@ -11,10 +11,11 @@
         <typeAlias alias="ArrayList"   type="java.util.ArrayList" />
 
         <!-- cn.lj.pdl.model -->
-        <typeAlias alias="UserDO"      type="cn.lj.pdl.model.UserDO" />
-        <typeAlias alias="DatasetDO"   type="cn.lj.pdl.model.DatasetDO" />
-        <typeAlias alias="ImageDO"     type="cn.lj.pdl.model.ImageDO" />
-        <typeAlias alias="AlgoTrainDO" type="cn.lj.pdl.model.AlgoTrainDO" />
-        <typeAlias alias="AlgoDeployDO" type="cn.lj.pdl.model.AlgoDeployDO" />
+        <typeAlias alias="UserDO"         type="cn.lj.pdl.model.UserDO" />
+        <typeAlias alias="DatasetDO"      type="cn.lj.pdl.model.DatasetDO" />
+        <typeAlias alias="ImageDO"        type="cn.lj.pdl.model.ImageDO" />
+        <typeAlias alias="AlgoTrainDO"    type="cn.lj.pdl.model.AlgoTrainDO" />
+        <typeAlias alias="AlgoDeployDO"   type="cn.lj.pdl.model.AlgoDeployDO" />
+        <typeAlias alias="AutoAlgoTaskDO" type="cn.lj.pdl.model.AutoAlgoTaskDO" />
     </typeAliases>
 </configuration>

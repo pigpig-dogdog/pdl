@@ -1,6 +1,5 @@
 package cn.lj.pdl.mapper;
 
-import cn.lj.pdl.constant.Constants;
 import cn.lj.pdl.model.UserDO;
 import cn.lj.pdl.utils.CommonUtil;
 import org.junit.Test;
@@ -35,7 +34,7 @@ public class UserMapperTest {
         System.out.println(userMapper.existsByUsername(username));
 
         UserDO userDO1 = userMapper.findByUsername(username);
-        System.out.println(new SimpleDateFormat(Constants.DATE_FORMAT).format(userDO1.getCreateTime()));
+        System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(userDO1.getCreateTime()));
 
         userMapper.delete(id);
         System.out.println(userMapper.existsByUsername(username));

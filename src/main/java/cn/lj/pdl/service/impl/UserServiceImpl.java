@@ -10,7 +10,6 @@ import cn.lj.pdl.mapper.UserMapper;
 import cn.lj.pdl.model.UserDO;
 import cn.lj.pdl.security.JwtTokenProvider;
 import cn.lj.pdl.service.UserService;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,7 +20,6 @@ import org.springframework.stereotype.Service;
  * @author luojian
  * @date 2019/11/23
  */
-@Slf4j
 @Service
 public class UserServiceImpl implements UserService {
 

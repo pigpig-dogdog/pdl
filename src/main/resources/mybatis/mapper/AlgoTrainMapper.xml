@@ -78,6 +78,19 @@
         LIMIT #{pageInfo.startIndex}, #{pageInfo.pageSize}
     </select>
 
+    <select id="findByStatus" resultMap="AlgoTrainResultMap">
+        SELECT
+        <include refid="AlgoTrain_All_Columns" />
+        FROM algo_train
+        WHERE status = #{status}
+    </select>
+
+    <update id="updateStatus">
+        UPDATE algo_train
+        SET status = #{status}, modify_time = now()
+        WHERE id = #{id}
+    </update>
+
 
 
 </mapper>

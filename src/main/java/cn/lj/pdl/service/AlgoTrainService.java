@@ -5,15 +5,14 @@ import cn.lj.pdl.constant.TrainStatus;
 import cn.lj.pdl.dto.PageResponse;
 import cn.lj.pdl.dto.algotrain.AlgoTrainCreateRequest;
 import cn.lj.pdl.model.AlgoTrainDO;
-import org.apache.ibatis.annotations.Mapper;
-import org.springframework.stereotype.Repository;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 /**
  * @author luojian
  * @date 2019/11/30
  */
-@Mapper
-@Repository
 public interface AlgoTrainService {
     /**
      * 创建训练任务
@@ -21,8 +20,20 @@ public interface AlgoTrainService {
      * @param request 请求
      * @param codeZipFile 代码压缩文件
      * @param requestUsername 请求者用户名
+     * @throws IOException IOException
      */
-    void create(AlgoTrainCreateRequest request, byte[] codeZipFile, String requestUsername);
+    void create(AlgoTrainCreateRequest request, MultipartFile codeZipFile, String requestUsername) throws IOException;
+
+    /**
+     * 创建训练任务
+     *
+     * @param request 请求
+     * @param codeZipFilePath 代码压缩文件路径
+     * @param algoTrainUuid algoTrainUuid
+     * @param requestUsername 请求者用户名
+     * @return Long AlgoTrainDO Id
+     */
+    Long create(AlgoTrainCreateRequest request, String codeZipFilePath, String algoTrainUuid, String requestUsername);
 
     /**
      * 获取训练任务列表, 分页条件查询
@@ -43,6 +54,7 @@ public interface AlgoTrainService {
      *
      * @param id 训练id
      * @return String 日志
+     * @throws IOException IOException
      */
-    String getLog(Long id);
+    String getLog(Long id) throws IOException;
 }

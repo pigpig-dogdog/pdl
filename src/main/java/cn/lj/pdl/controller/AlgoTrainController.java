@@ -17,6 +17,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -55,6 +56,10 @@ public class AlgoTrainController {
     })
     public Body<PageResponse<AlgoTrainDO>> list(Integer pageNumber, Integer pageSize,
                                                 String creatorName, String name, Framework framework, TrainStatus status) {
+
+        creatorName = (creatorName == null || StringUtils.isEmpty(creatorName.trim())) ? null : creatorName.trim();
+        name = (name == null || StringUtils.isEmpty(name.trim())) ? null : name.trim();
+
         PageResponse<AlgoTrainDO> response = algoTrainService.list(pageNumber, pageSize, creatorName, name, framework, status);
         return Body.buildSuccess(response);
     }
@@ -72,14 +77,13 @@ public class AlgoTrainController {
             throw new BizException(BizExceptionEnum.NOT_ZIP_FILE);
         }
 
-        byte[] file = codeZipFile.getBytes();
-        algoTrainService.create(algoTrainCreateRequest, file, userService.getCurrentRequestUsername());
+        algoTrainService.create(algoTrainCreateRequest, codeZipFile, userService.getCurrentRequestUsername());
         return Body.buildSuccess(null);
     }
 
     @GetMapping("/{id}/log")
     @ApiOperation("获取训练任务日志")
-    public Body<String> getLog(@PathVariable Long id) {
+    public Body<String> getLog(@PathVariable Long id) throws IOException {
         String log = algoTrainService.getLog(id);
         return Body.buildSuccess(log);
     }

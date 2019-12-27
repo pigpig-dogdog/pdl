@@ -66,11 +66,9 @@ public interface DatasetMapper {
      * 条件查询，返回符合条件的总行数
      *
      * @param condition 查询条件
-     * @param pageInfo 页信息
      * @return Integer
      */
-    Integer countByCondition(@Param("condition") DatasetDO condition,
-                             @Param("pageInfo") PageInfo pageInfo);
+    Integer countByCondition(@Param("condition") DatasetDO condition);
 
     /**
      * 条件查询，返回符合条件的数据列表

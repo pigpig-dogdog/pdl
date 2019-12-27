@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.lj.pdl.mapper.AutoAlgoTaskMapper">
+    <resultMap id="AutoAlgoTaskResultMap" type="AutoAlgoTaskDO">
+        <id     column="id"                  property="id"                jdbcType="BIGINT"    javaType="Long" />
+        <result column="create_time"         property="createTime"        jdbcType="TIMESTAMP" javaType="java.util.Date" />
+        <result column="modify_time"         property="modifyTime"        jdbcType="TIMESTAMP" javaType="java.util.Date" />
+        <result column="creator_name"        property="creatorName"       jdbcType="VARCHAR"   javaType="String" />
+        <result column="name"                property="name"              jdbcType="VARCHAR"   javaType="String" />
+        <result column="uuid"                property="uuid"              jdbcType="VARCHAR"   javaType="String" />
+        <result column="algo_type"           property="algoType"          jdbcType="VARCHAR"   javaType="cn.lj.pdl.constant.AlgoType" />
+        <result column="dataset_id"          property="datasetId"         jdbcType="BIGINT"    javaType="Long" />
+        <result column="algo_train_id_list"  property="algoTrainIdList"   jdbcType="VARCHAR"   javaType="String" />
+        <result column="algo_deploy_id"      property="algoDeployId"      jdbcType="BIGINT"    javaType="Long" />
+        <result column="status"              property="status"            jdbcType="VARCHAR"   javaType="cn.lj.pdl.constant.AutoAlgoTaskStatus" />
+    </resultMap>
+
+    <sql id="AutoAlgoTask_All_Columns_Without_Id" >
+        create_time, modify_time, creator_name,
+        name, uuid, algo_type, dataset_id, algo_train_id_list, algo_deploy_id, status
+    </sql>
+
+    <sql id="AutoAlgoTask_All_Columns" >
+        id, <include refid="AutoAlgoTask_All_Columns_Without_Id" />
+    </sql>
+
+    <insert id="insert" parameterType="AutoAlgoTaskDO" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO auto_algo_task
+            (<include refid="AutoAlgoTask_All_Columns_Without_Id" />)
+        VALUES
+            (now(), now(), #{creatorName},
+            #{name}, #{uuid}, #{algoType}, #{datasetId}, #{algoTrainIdList}, #{algoDeployId}, #{status})
+    </insert>
+
+    <select id="findById" resultMap="AutoAlgoTaskResultMap">
+        SELECT
+            <include refid="AutoAlgoTask_All_Columns" />
+        FROM auto_algo_task
+        WHERE id = #{id}
+    </select>
+
+    <select id="findByStatus" resultMap="AutoAlgoTaskResultMap">
+        SELECT
+            <include refid="AutoAlgoTask_All_Columns" />
+        FROM auto_algo_task
+        WHERE status = #{status}
+    </select>
+
+    <update id="updateStatus">
+        UPDATE auto_algo_task
+        SET status = #{status}, modify_time = now()
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateAlgoDeployId">
+        UPDATE auto_algo_task
+        SET algo_deploy_id = #{algoDeployId}, modify_time = now()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

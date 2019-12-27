@@ -1,8 +1,8 @@
 package cn.lj.pdl.service;
 
-import cn.lj.pdl.constant.WriteMode;
-
+import java.io.IOException;
 import java.net.URL;
+import java.util.List;
 
 /**
  * @author luojian
@@ -10,13 +10,22 @@ import java.net.URL;
  */
 public interface StorageService {
     /**
-     * 存储文件
+     * 上传文件
      *
      * @param path 文件路径
      * @param file 待上传的文件字节流
      * @return URL
      */
     URL uploadFile(String path, byte[] file);
+
+    /**
+     * 上传本地文件
+     *
+     * @param path 文件路径
+     * @param localPath 待上传的本地文件路径
+     * @return URL
+     */
+    URL uploadLocalFile(String path, String localPath);
 
     /**
      * 删除文件
@@ -43,6 +52,22 @@ public interface StorageService {
     Boolean createDirs(String... paths);
 
     /**
+     * 列举目录下的所有子文件（仅为子文件，不包含目录）
+     *
+     * @param path 目录路径
+     * @return List
+     */
+    List<String> listFiles(String path);
+
+    /**
+     * 递归 列举目录下的所有子文件（仅为子文件，不包含目录）
+     *
+     * @param path 目录路径
+     * @return List
+     */
+    List<String> listFilesRecursive(String path);
+
+    /**
      * 删除目录
      *
      * @param path 目录路径
@@ -55,15 +80,15 @@ public interface StorageService {
      *
      * @param path 路径
      * @param content 内容
-     * @param writeMode 写模式（覆盖或追加）
      */
-    void write(String path, String content, WriteMode writeMode);
+    void write(String path, String content);
 
     /**
      * 读文件
      *
      * @param path 路径
      * @return String
+     * @throws IOException IOException
      */
-    String read(String path);
+    String read(String path) throws IOException;
 }

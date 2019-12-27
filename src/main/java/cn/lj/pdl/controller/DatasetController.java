@@ -1,8 +1,10 @@
 package cn.lj.pdl.controller;
 
 import cn.lj.pdl.constant.AlgoType;
+import cn.lj.pdl.constant.Constants;
 import cn.lj.pdl.dto.Body;
 import cn.lj.pdl.dto.PageResponse;
+import cn.lj.pdl.dto.dataset.BatchImagesResponse;
 import cn.lj.pdl.dto.dataset.DatasetCreateRequest;
 import cn.lj.pdl.dto.dataset.DatasetModifyRequest;
 import cn.lj.pdl.exception.BizException;
@@ -11,6 +13,7 @@ import cn.lj.pdl.model.DatasetDO;
 import cn.lj.pdl.model.ImageDO;
 import cn.lj.pdl.service.DatasetService;
 import cn.lj.pdl.service.UserService;
+import cn.lj.pdl.utils.CommonUtil;
 import cn.lj.pdl.utils.FileUtil;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +23,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 /**
  * @author luojian
@@ -61,7 +66,7 @@ public class DatasetController {
 
     @GetMapping("/{id}")
     @ApiOperation(value = "数据集详情")
-    public Body<DatasetDO> detail(@PathVariable Long id) {
+    public Body<DatasetDO> detail(@PathVariable("id") Long id) {
         DatasetDO datasetDO = datasetService.detail(id);
         return Body.buildSuccess(datasetDO);
     }
@@ -83,7 +88,7 @@ public class DatasetController {
             @ApiResponse(code = 200, message = "删除成功"),
             @ApiResponse(code = 400, message = "数据集不存在\n非数据集创建者无权删除")
     })
-    public Body delete(@PathVariable Long id) {
+    public Body delete(@PathVariable("id") Long id) {
         datasetService.delete(id, userService.getCurrentRequestUsername());
         return Body.buildSuccess(null);
     }
@@ -103,7 +108,7 @@ public class DatasetController {
             @ApiImplicitParam(name = "pageSize", value = "每页数量（默认10）", paramType = "query", dataType = "int", example = "10"),
             @ApiImplicitParam(name = "annotated", value = "是否已标注", paramType = "query", dataType = "boolean")
     })
-    public Body<PageResponse<ImageDO>> listImages(@PathVariable Long id,
+    public Body<PageResponse<ImageDO>> listImages(@PathVariable("id") Long id,
                                                   Integer pageNumber, Integer pageSize,
                                                   Boolean annotated) {
         pageNumber = (pageNumber == null || pageNumber < 1) ? 1 : pageNumber;
@@ -115,7 +120,7 @@ public class DatasetController {
 
     @PostMapping("/{id}/uploadImage")
     @ApiOperation(value = "数据集上传单张图片/封面")
-    public Body uploadImage(@PathVariable Long id, @RequestParam("file") MultipartFile file,
+    public Body uploadImage(@PathVariable("id") Long id, @RequestParam("file") MultipartFile file,
                             @RequestParam(value = "isCoverImage", required = false) Boolean isCoverImage) throws IOException {
 
         if (file == null || file.isEmpty()) {
@@ -138,10 +143,68 @@ public class DatasetController {
         return Body.buildSuccess(null);
     }
 
+    @PostMapping("/{id}/uploadImagesZip")
+    public Body uploadImagesZip(@PathVariable("id") Long id,
+                                @RequestParam("imagesZipFile") MultipartFile imagesZipFile) throws IOException {
+
+        if (imagesZipFile == null || imagesZipFile.isEmpty()) {
+            throw new BizException(BizExceptionEnum.EMPTY_FILE);
+        }
+
+        if (!FileUtil.isZipFile(imagesZipFile)) {
+            throw new BizException(BizExceptionEnum.NOT_ZIP_FILE);
+        }
+
+        if (!datasetService.exist(id)) {
+            throw new BizException(BizExceptionEnum.DATASET_NOT_EXIST);
+        }
+
+        // 先将压缩文件保存在本地，上传结束之后会删除
+        byte[] bytes = imagesZipFile.getBytes();
+        String zipFilePath = Paths.get(Constants.TMP_FILE_UPLOAD_FOLDER, CommonUtil.generateUuid() + ".zip").toString();
+        Files.write(Paths.get(zipFilePath), bytes);
+
+        datasetService.uploadImagesZip(id, zipFilePath, userService.getCurrentRequestUsername());
+        return Body.buildSuccess(null);
+    }
+
     @DeleteMapping("/image/{imageId}")
     @ApiOperation(value = "删除数据集的图片【这个功能先不用做】")
-    public Body deleteImage(@PathVariable Long imageId) {
+    public Body deleteImage(@PathVariable("imageId") Long imageId) {
         datasetService.deleteImage(imageId, userService.getCurrentRequestUsername());
         return Body.buildSuccess(null);
+    }
+
+    @PostMapping("/{id}/annotation")
+    @ApiOperation(value = "图片标注")
+    public Body annotation(@PathVariable Long id) {
+        return Body.buildSuccess(null);
+    }
+
+    @GetMapping("/{id}/getPrevImage")
+    @ApiOperation(value = "获取上一张图片")
+    public Body<ImageDO> getPrev(@PathVariable("id") Long datasetId,
+                                 @RequestParam("currentImageId") Long currentImageId) {
+        ImageDO response = datasetService.getPrevImage(datasetId, currentImageId);
+        return Body.buildSuccess(response);
+    }
+
+    @GetMapping("/{id}/getNextImage")
+    @ApiOperation(value = "获取下一张图片")
+    public Body<ImageDO> getNext(@PathVariable("id") Long datasetId,
+                                 @RequestParam("currentImageId") Long currentImageId) {
+        ImageDO response = datasetService.getNextImage(datasetId, currentImageId);
+        return Body.buildSuccess(response);
+    }
+
+    @GetMapping("/{id}/getNextBatchUnannotatedImages")
+    @ApiOperation(value = "获取下一批未标注的图片")
+    public Body<BatchImagesResponse> getNextBatchUnannotatedImages(@PathVariable("id") Long datasetId,
+                                                                   @RequestParam("startImageId") Long startImageId,
+                                                                   @RequestParam("batchSize") Integer batchSize,
+                                                                   Integer clusterNumber) {
+
+        BatchImagesResponse response = datasetService.getNextBatchUnannotatedImages(datasetId, startImageId, batchSize, clusterNumber);
+        return Body.buildSuccess(response);
     }
 }

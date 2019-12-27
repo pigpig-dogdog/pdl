@@ -11,10 +11,11 @@
         <result column="is_annotated"     property="annotated"       jdbcType="TINYINT"   javaType="Boolean" />
         <result column="annotation"       property="annotation"      jdbcType="VARCHAR"   javaType="String" />
         <result column="url"              property="url"             jdbcType="VARCHAR"   javaType="String" />
+        <result column="cluster_number"   property="clusterNumber"   jdbcType="INTEGER"   javaType="Integer" />
     </resultMap>
 
     <sql id="Image_All_Columns_Without_Id" >
-        create_time, modify_time, uploader_name, dataset_id, filename, is_annotated, annotation, url
+        create_time, modify_time, uploader_name, dataset_id, filename, is_annotated, annotation, url, cluster_number
     </sql>
 
     <sql id="Image_All_Columns" >
@@ -42,20 +43,19 @@
         INSERT INTO image
             (<include refid="Image_All_Columns_Without_Id" />)
         VALUES
-            (now(), now(), #{uploaderName}, #{datasetId}, #{filename}, #{annotated}, #{annotation}, #{url})
+            (now(), now(), #{uploaderName}, #{datasetId}, #{filename}, #{annotated}, #{annotation}, #{url}, #{clusterNumber})
         ;
 
-        # 再把该图片所属的数据集image_number数量 + 1
         UPDATE dataset
         SET images_number = images_number + 1
         WHERE id = #{datasetId}
     </insert>
 
     <delete id="delete" parameterType="Long">
-        # 先把该图片所属的数据集image_number数量 - 1
         UPDATE dataset
         SET images_number = images_number - 1
-        WHERE id = ( SELECT dataset_id FROM image WHERE id = #{id} );
+        WHERE id = ( SELECT dataset_id FROM image WHERE id = #{id} )
+        ;
 
         DELETE FROM image
         WHERE id = #{id};
@@ -83,6 +83,46 @@
             <include refid="Image_Dynamic_Query" />
         ORDER BY modify_time DESC
         LIMIT #{pageInfo.startIndex}, #{pageInfo.pageSize}
+    </select>
+
+    <select id="getPrevImage" resultMap="ImageResultMap">
+        SELECT
+            <include refid="Image_All_Columns" />
+        FROM image
+        WHERE
+            dataset_id = #{datasetId} AND id &lt; #{currentImageId}
+        ORDER BY id DESC
+        LIMIT 1
+    </select>
+
+    <select id="getNextImage" resultMap="ImageResultMap">
+        SELECT
+            <include refid="Image_All_Columns" />
+        FROM image
+        WHERE
+            dataset_id = #{datasetId} AND id &gt; #{currentImageId}
+        ORDER BY id
+        LIMIT 1
+    </select>
+
+    <select id="getNextBatchUnannotatedImages" resultMap="ImageResultMap">
+        SELECT
+            <include refid="Image_All_Columns" />
+        FROM image
+        WHERE
+            dataset_id = #{datasetId} AND
+            id &gt; #{startImageId} AND
+            is_annotated = 0 AND
+            <choose>
+               <when test="clusterNumber == null">
+                   cluster_number is NULL
+               </when>
+               <otherwise>
+                   cluster_number = #{clusterNumber}
+               </otherwise>
+            </choose>
+        ORDER BY id
+        LIMIT #{batchSize}
     </select>
 
 </mapper>

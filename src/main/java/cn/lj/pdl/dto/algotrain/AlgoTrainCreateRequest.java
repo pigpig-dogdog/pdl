@@ -24,7 +24,7 @@ public class AlgoTrainCreateRequest {
     @NotNull(message = "深度学习框架不可为空")
     private Framework framework;
 
-    @ApiModelProperty(value = "程序入口与参数（相对路径）", required = true, example = "src/main.py --a=1 --b=2", position = 3)
+    @ApiModelProperty(value = "程序入口与参数（相对路径）", required = true, example = "python main.py --a=1 --b=2", position = 3)
     @NotBlank(message = "程序入口与参数不可为空")
     private String entryAndArgs;
 

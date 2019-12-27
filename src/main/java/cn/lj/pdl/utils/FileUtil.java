@@ -14,6 +14,12 @@ public class FileUtil {
         return StringUtils.startsWithIgnoreCase(file.getContentType(), "image/");
     }
 
+    public static boolean isImageFile(String fileName) {
+        return StringUtils.endsWithIgnoreCase(fileName, ".jpg") ||
+               StringUtils.endsWithIgnoreCase(fileName, ".jpeg") ||
+               StringUtils.endsWithIgnoreCase(fileName, ".png");
+    }
+
     public static boolean isZipFile(MultipartFile file) {
         return file.getContentType() != null && file.getContentType().contains("zip");
     }

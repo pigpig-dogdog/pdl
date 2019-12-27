@@ -60,4 +60,10 @@ public class ImageDO {
      */
     private String url;
 
+    /**
+     * 聚类类别编号
+     *  - 若图片参与过聚类算法, 取值范围:[0, 数据集类别数目-1];
+     *  - 若图片没有参与过聚类算法，取值为NULL
+     */
+    private Integer clusterNumber;
 }
