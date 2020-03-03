@@ -34,7 +34,7 @@ public class AlgoTrainScheduler {
         this.storageService = storageService;
     }
 
-    @Scheduled(fixedDelay = 1000)
+    @Scheduled(fixedDelay = 5 * 1000)
     public void refreshAlgoTrainStatus() {
         // 获取所有状态为 RUNNING 的 AlgoTrainDO
         TrainStatus oldStatus = TrainStatus.RUNNING;
@@ -45,15 +45,16 @@ public class AlgoTrainScheduler {
             TrainStatus newStatus = k8sService.getJobStatus(algoTrainDO.getUuid());
             // 如果状态发生变化，更新状态
             if (!newStatus.equals(oldStatus)) {
-                algoTrainMapper.updateStatus(algoTrainDO.getId(), newStatus);
-                log.info("更新AlgoTrain状态, id:{}, name:{}, oldStatus:{}, newStatus:{}.", algoTrainDO.getId(), algoTrainDO.getName(), oldStatus, newStatus);
-
                 // 若 k8s job 运行结束，获取job运行日志，上传至文件服务器，并删除 k8s job
                 if (newStatus.equals(TrainStatus.SUCCESS) || newStatus.equals(TrainStatus.FAILED)) {
                     String log = k8sService.getJobLog(algoTrainDO.getUuid());
                     storageService.write(StorageConstants.getAlgoTrainLogPath(algoTrainDO.getUuid()), log);
-                    k8sService.deleteJob(algoTrainDO.getUuid());
+                    // todo
+//                    k8sService.deleteJob(algoTrainDO.getUuid());
                 }
+
+                algoTrainMapper.updateStatus(algoTrainDO.getId(), newStatus);
+                log.info("更新AlgoTrain状态, id:{}, name:{}, oldStatus:{}, newStatus:{}.", algoTrainDO.getId(), algoTrainDO.getName(), oldStatus, newStatus);
             }
         }
     }

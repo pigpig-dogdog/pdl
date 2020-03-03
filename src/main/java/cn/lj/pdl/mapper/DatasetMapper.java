@@ -19,9 +19,8 @@ public interface DatasetMapper {
      * 插入数据集
      *
      * @param datasetDO datasetDO
-     * @return Long 主键
      */
-    Long insert(DatasetDO datasetDO);
+    void insert(DatasetDO datasetDO);
 
     /**
      * 删除数据集

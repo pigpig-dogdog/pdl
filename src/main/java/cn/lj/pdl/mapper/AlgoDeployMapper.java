@@ -21,9 +21,8 @@ public interface AlgoDeployMapper {
      * 插入数据库
      *
      * @param algoDeployDO algoDeployDO
-     * @return Long 主键
      */
-    Long insert(AlgoDeployDO algoDeployDO);
+    void insert(AlgoDeployDO algoDeployDO);
 
     /**
      * 根据id 获取 AlgoDeployDO

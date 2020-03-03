@@ -27,8 +27,8 @@ public class UserMapperTest {
         UserDO userDO = new UserDO();
         userDO.setUsername(username);
         userDO.setPassword("123");
-        Long id = userMapper.insert(userDO);
-        System.out.println(userDO);
+        userMapper.insert(userDO);
+        System.out.println(userDO.getId());
 
         System.out.println(userMapper.existsByUsername("qwqw"));
         System.out.println(userMapper.existsByUsername(username));
@@ -36,7 +36,7 @@ public class UserMapperTest {
         UserDO userDO1 = userMapper.findByUsername(username);
         System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(userDO1.getCreateTime()));
 
-        userMapper.delete(id);
+        userMapper.delete(userDO.getId());
         System.out.println(userMapper.existsByUsername(username));
     }
 }

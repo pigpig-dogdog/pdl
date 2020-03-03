@@ -17,8 +17,8 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -57,9 +57,8 @@ public class AlgoDeployController {
     })
     public Body<PageResponse<AlgoDeployDO>> list(Integer pageNumber, Integer pageSize,
                                                  String creatorName, String name, Framework framework, DeployStatus status) {
-
-        creatorName = (creatorName == null || StringUtils.isEmpty(creatorName.trim())) ? null : creatorName.trim();
-        name = (name == null || StringUtils.isEmpty(name.trim())) ? null : name.trim();
+        creatorName = StringUtils.trimToNull(creatorName);
+        name = StringUtils.trimToNull(name);
 
         PageResponse<AlgoDeployDO> response = algoDeployService.list(pageNumber, pageSize, creatorName, name, framework, status);
         return Body.buildSuccess(response);
@@ -103,8 +102,8 @@ public class AlgoDeployController {
             throw new BizException(BizExceptionEnum.REPLICAS_CAN_NOT_BE_NULL);
         }
 
-        if (replicas < 0) {
-            throw new BizException(BizExceptionEnum.REPLICAS_LESS_THEN_ZERO);
+        if (replicas < 1) {
+            throw new BizException(BizExceptionEnum.REPLICAS_LESS_THEN_ONE);
         }
 
         if (replicas > Constants.REPLICAS_MAX_VALUE) {

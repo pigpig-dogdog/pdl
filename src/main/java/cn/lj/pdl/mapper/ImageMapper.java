@@ -2,8 +2,10 @@ package cn.lj.pdl.mapper;
 
 import cn.lj.pdl.dto.PageInfo;
 import cn.lj.pdl.model.ImageDO;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -88,4 +90,38 @@ public interface ImageMapper {
                                                 @Param("startImageId") Long startImageId,
                                                 @Param("batchSize") Integer batchSize,
                                                 @Param("clusterNumber") Integer clusterNumber);
+
+    /**
+     * 图片标注
+     *
+     * @param imageId 图片id
+     * @param annotation 标注信息，如果是分类任务：class name；如果是检测任务：bboxes json
+     */
+    void updateAnnotation(@Param("imageId") Long imageId,
+                          @Param("annotation") String annotation);
+
+    /**
+     * 获取某个数据集的 id -> filename 的列表
+     * @param datasetId datasetId
+     * @return List
+     */
+    List<Pair<Long, String>> getIdToFilenameList(@Param("datasetId") Long datasetId);
+
+    /**
+     * 更新图片聚类类别
+     * @param imageId 图片id
+     * @param clusterNumber 聚类类别
+     */
+    void updateClusterNumber(@Param("imageId") Long imageId,
+                             @Param("clusterNumber") Integer clusterNumber);
+
+    /**
+     * 更新图片预测类别
+     * @param datasetId 数据集id
+     * @param clusterNumber 聚类类别
+     * @param predictClassName 预测类别
+     */
+    void updatePredictClassName(@Param("datasetId") Long datasetId,
+                                @Param("clusterNumber") Integer clusterNumber,
+                                @Param("predictClassName") String predictClassName);
 }

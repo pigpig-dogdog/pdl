@@ -17,6 +17,14 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @Configuration
 @EnableSwagger2
 public class SwaggerConfig {
+    private ApiInfo apiInfo() {
+        return new ApiInfoBuilder()
+                .title("深度学习平台后端API")
+                .description("开发者：骆剑")
+                .version("0.1")
+                .build();
+    }
+
     @Bean
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
@@ -26,13 +34,4 @@ public class SwaggerConfig {
                 .paths(PathSelectors.any())
                 .build();
     }
-
-    private ApiInfo apiInfo() {
-        return new ApiInfoBuilder()
-                .title("深度学习平台后端API")
-                .description("开发者：骆剑")
-                .version("0.1")
-                .build();
-    }
-
 }

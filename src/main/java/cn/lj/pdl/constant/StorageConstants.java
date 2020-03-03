@@ -14,6 +14,7 @@ public class StorageConstants {
     private final static String DATASET_IMAGES_DIR_PATH_FORMAT = "datasets/%s/images/";
     private final static String DATASET_ANNOTATIONS_DIR_PATH_FORMAT = "datasets/%s/annotations/";
     private final static String DATASET_IMAGE_PATH_FORMAT = "datasets/%s/images/%s";
+    // todo: ".xml" 改为 ".json"
     private final static String DATASET_ANNOTATION_PATH_FORMAT = "datasets/%s/annotations/%s.xml";
 
     private final static String ALGOTRAIN_ROOT_PATH = "algo-train/";
@@ -30,13 +31,20 @@ public class StorageConstants {
     private final static String AUTOALGOTASK_DIR_PATH_FORMAT = "auto-algo-task/%s/";
     private final static String AUTOALGOTASK_DATASET_TRAIN_LIST_FORMAT = "auto-algo-task/%s/train.txt";
     private final static String AUTOALGOTASK_DATASET_TEST_LIST_FORMAT = "auto-algo-task/%s/test.txt";
-    private final static String AUTOALGOTASK_ALGOTRAIN_CODE_ZIP_FILE_PATH = "auto-algo-task/auto_algo_task.zip";
+    private final static String AUTOALGOTASK_ALGOTRAIN_CODE_ZIP_FILE_PATH = "auto-algo-task/common/auto_algo_task.zip";
+    private final static String AUTOALGOTASK_ALGOTRAIN_DETECTION_CODE_ZIP_FILE_PATH = "auto-algo-task/common/auto_algo_task_det.zip";
     private final static String AUTOALGOTASK_ALGOTRAIN_ACCURACY_FORMAT = "auto-algo-task/%s/accuracy-%s.txt";
     /**
      * 训练程序结束之后，将会把整个代码文件上传（与原来相比多了训练模型）
      * 该代码文件就作为部署的代码
      */
     private final static String AUTOALGOTASK_ALGODEPLOY_CODE_ZIP_FILE_PATH_FORMAT = "auto-algo-task/%s/deploy-code-%s.zip";
+
+    private final static String IMAGE_CLUSTER_TASK_ROOT_PATH = "image-cluster-task/";
+    private final static String IMAGE_CLUSTER_TASK_DIR_PATH_FORMAT = "image-cluster-task/%s/";
+    private final static String IMAGE_CLUSTER_TASK_DATA_PATH_FORMAT = "image-cluster-task/%s/data.txt";
+    private final static String IMAGE_CLUSTER_TASK_RESULT_PATH_FORMAT = "image-cluster-task/%s/result.txt";
+    private final static String IMAGE_CLUSTER_TASK_ALGOTRAIN_CODE_ZIP_FILE_PATH = "image-cluster-task/common/image_cluster_task.zip";
 
     public static String getDatasetRootPath() {
         return DATASET_ROOT_PATH;
@@ -118,12 +126,37 @@ public class StorageConstants {
         return AUTOALGOTASK_ALGOTRAIN_CODE_ZIP_FILE_PATH;
     }
 
+    public static String getAutoAlgoTaskAlgoTrainDetectionCodeZipFilePath() {
+        return AUTOALGOTASK_ALGOTRAIN_DETECTION_CODE_ZIP_FILE_PATH;
+    }
+
     public static String getAutoAlgoTaskAlgoTrainAccuracy(String autoAlgoTaskUuid, String algoTrainUuid) {
         return String.format(AUTOALGOTASK_ALGOTRAIN_ACCURACY_FORMAT, autoAlgoTaskUuid, algoTrainUuid);
     }
 
     public static String getAutoAlgoTaskAlgoDeployCodeZipFilePath(String autoAlgoTaskUuid, String algoTrainUuid) {
         return String.format(AUTOALGOTASK_ALGODEPLOY_CODE_ZIP_FILE_PATH_FORMAT, autoAlgoTaskUuid, algoTrainUuid);
+    }
+
+
+    public static String getImageClusterTaskRootPath() {
+        return IMAGE_CLUSTER_TASK_ROOT_PATH;
+    }
+
+    public static String getImageClusterTaskDirPath(String taskUuid) {
+        return String.format(IMAGE_CLUSTER_TASK_DIR_PATH_FORMAT, taskUuid);
+    }
+
+    public static String getImageClusterTaskDataPath(String taskUuid) {
+        return String.format(IMAGE_CLUSTER_TASK_DATA_PATH_FORMAT, taskUuid);
+    }
+
+    public static String getImageClusterTaskResultPath(String taskUuid) {
+        return String.format(IMAGE_CLUSTER_TASK_RESULT_PATH_FORMAT, taskUuid);
+    }
+
+    public static String getImageClusterTaskAlgotrainCodeZipFilePath() {
+        return IMAGE_CLUSTER_TASK_ALGOTRAIN_CODE_ZIP_FILE_PATH;
     }
 
 }

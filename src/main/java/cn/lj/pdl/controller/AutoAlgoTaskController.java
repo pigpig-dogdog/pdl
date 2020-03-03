@@ -2,12 +2,15 @@ package cn.lj.pdl.controller;
 
 import cn.lj.pdl.dto.Body;
 import cn.lj.pdl.dto.autoalgotask.AutoAlgoTaskDetailResponse;
+import cn.lj.pdl.model.AutoAlgoTaskDO;
 import cn.lj.pdl.service.AutoAlgoTaskService;
 import cn.lj.pdl.service.UserService;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * @author luojian
@@ -35,9 +38,17 @@ public class AutoAlgoTaskController {
         return Body.buildSuccess(null);
     }
 
+    @GetMapping("/list")
+    public Body<List<AutoAlgoTaskDO>> list() {
+        List<AutoAlgoTaskDO> response = autoAlgoTaskService.list();
+        return Body.buildSuccess(response);
+    }
+
     @GetMapping("/{autoAlgoTaskId}/detail")
     public Body<AutoAlgoTaskDetailResponse> detail(@PathVariable Long autoAlgoTaskId) {
         AutoAlgoTaskDetailResponse response = autoAlgoTaskService.detail(autoAlgoTaskId);
         return Body.buildSuccess(response);
     }
+
+
 }

@@ -30,7 +30,7 @@ public class AlgoDeployScheduler {
         this.k8sService = k8sService;
     }
 
-    @Scheduled(fixedDelay = 1000)
+    @Scheduled(fixedDelay = 5 * 1000)
     public void refreshAlgoDeployStatus() {
         // 获取所有状态为 SERVING 的 AlgoDeployDO
         List<AlgoDeployDO> list = algoDeployMapper.findByStatus(DeployStatus.SERVING);

@@ -4,6 +4,9 @@ import cn.lj.pdl.constant.AlgoType;
 import cn.lj.pdl.dto.PageResponse;
 import cn.lj.pdl.dto.dataset.BatchImagesResponse;
 import cn.lj.pdl.dto.dataset.DatasetCreateRequest;
+import cn.lj.pdl.dto.dataset.DatasetImagesNumberDetailResponse;
+import cn.lj.pdl.dto.dataset.annotation.AnnotationClassificationRequest;
+import cn.lj.pdl.dto.dataset.annotation.AnnotationDetectionRequest;
 import cn.lj.pdl.model.DatasetDO;
 import cn.lj.pdl.model.ImageDO;
 
@@ -59,6 +62,16 @@ public interface DatasetService {
     DatasetDO detail(Long id);
 
     /**
+     * 数据集标注图片数量与未标注图片数量详情
+     * 分类任务：{"total": xxx, "annotated": xxx, "unAnnotated": xxx, "class_name_1": xxx, "class_name_2": xxx}
+     * 检测任务：{"total": xxx, "annotated": xxx, "unAnnotated": xxx}
+     *
+     * @param id 数据集id
+     * @return DatasetImagesNumberDetailResponse
+     */
+    DatasetImagesNumberDetailResponse imagesNumberDetail(Long id);
+
+    /**
      * 给数据集上传图片
      *
      * @param datasetId 数据集id
@@ -74,8 +87,9 @@ public interface DatasetService {
      * @param datasetId 数据集id
      * @param zipFilePath 压缩文件保存在本地的路径
      * @param requestUsername 发起请求的用户名
+     * @param uploadType 上传类型
      */
-    void uploadImagesZip(Long datasetId, String zipFilePath, String requestUsername);
+    void uploadImagesZip(Long datasetId, String zipFilePath, String requestUsername, int uploadType);
 
     /**
      * 给数据集删除图片
@@ -91,7 +105,6 @@ public interface DatasetService {
      * @param datasetId 数据集id
      * @param image 图片
      * @param extension 扩展名
-     * @param requestUsername 发起请求的用户名
      */
     void uploadCoverImage(Long datasetId, byte[] image, String extension);
 
@@ -102,11 +115,12 @@ public interface DatasetService {
      * @param  pageNumber 页号
      * @param pageSize 页码
      * @param annotated 是否已标注
+     * @param className 类别
      * @return PageResponse
      */
     PageResponse<ImageDO> listImages(Long datasetId,
                                      Integer pageNumber, Integer pageSize,
-                                     Boolean annotated);
+                                     Boolean annotated, String className);
 
     /**
      * 获取上一张图片
@@ -136,4 +150,28 @@ public interface DatasetService {
      * @return BatchImagesResponse
      */
     BatchImagesResponse getNextBatchUnannotatedImages(Long datasetId, Long startImageId, Integer batchSize, Integer clusterNumber);
+
+    /**
+     * 分类图片批量标注
+     *
+     * @param datasetId 数据集id
+     * @param request 请求
+     */
+    void annotationClassification(Long datasetId, AnnotationClassificationRequest request);
+
+    /**
+     * 检测图片单张标注
+     *
+     * @param datasetId 数据集id
+     * @param request 请求
+     */
+    void annotationDetection(Long datasetId, AnnotationDetectionRequest request);
+
+    /**
+     * 创建图片聚类任务
+     *
+     * @param datasetId datasetId
+     * @param requestUsername 发起请求的用户名
+     */
+    void createImageClusterTask(Long datasetId, String requestUsername);
 }

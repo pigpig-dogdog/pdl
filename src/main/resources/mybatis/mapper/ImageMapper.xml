@@ -2,20 +2,26 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="cn.lj.pdl.mapper.ImageMapper">
     <resultMap id="ImageResultMap" type="ImageDO">
-        <id     column="id"               property="id"              jdbcType="BIGINT"    javaType="Long" />
-        <result column="create_time"      property="createTime"      jdbcType="TIMESTAMP" javaType="java.util.Date" />
-        <result column="modify_time"      property="modifyTime"      jdbcType="TIMESTAMP" javaType="java.util.Date" />
-        <result column="uploader_name"    property="uploaderName"    jdbcType="VARCHAR"   javaType="String" />
-        <result column="dataset_id"       property="datasetId"       jdbcType="BIGINT"    javaType="Long" />
-        <result column="filename"          property="filename"         jdbcType="VARCHAR"   javaType="String" />
-        <result column="is_annotated"     property="annotated"       jdbcType="TINYINT"   javaType="Boolean" />
-        <result column="annotation"       property="annotation"      jdbcType="VARCHAR"   javaType="String" />
-        <result column="url"              property="url"             jdbcType="VARCHAR"   javaType="String" />
-        <result column="cluster_number"   property="clusterNumber"   jdbcType="INTEGER"   javaType="Integer" />
+        <id     column="id"                 property="id"               jdbcType="BIGINT"    javaType="Long" />
+        <result column="create_time"        property="createTime"       jdbcType="TIMESTAMP" javaType="java.util.Date" />
+        <result column="modify_time"        property="modifyTime"       jdbcType="TIMESTAMP" javaType="java.util.Date" />
+        <result column="uploader_name"      property="uploaderName"     jdbcType="VARCHAR"   javaType="String" />
+        <result column="dataset_id"         property="datasetId"        jdbcType="BIGINT"    javaType="Long" />
+        <result column="filename"            property="filename"          jdbcType="VARCHAR"   javaType="String" />
+        <result column="is_annotated"       property="annotated"        jdbcType="TINYINT"   javaType="Boolean" />
+        <result column="annotation"         property="annotation"       jdbcType="VARCHAR"   javaType="String" />
+        <result column="url"                property="url"              jdbcType="VARCHAR"   javaType="String" />
+        <result column="cluster_number"     property="clusterNumber"    jdbcType="INTEGER"   javaType="Integer" />
+        <result column="predict_class_name" property="predictClassName" jdbcType="VARCHAR"   javaType="String" />
+    </resultMap>
+
+    <resultMap id="Id2FilenameResultMap" type="org.apache.commons.lang3.tuple.ImmutablePair">
+        <id     column="id"               property="left"              jdbcType="BIGINT"    javaType="Long" />
+        <result column="filename"          property="right"             jdbcType="VARCHAR"   javaType="String" />
     </resultMap>
 
     <sql id="Image_All_Columns_Without_Id" >
-        create_time, modify_time, uploader_name, dataset_id, filename, is_annotated, annotation, url, cluster_number
+        create_time, modify_time, uploader_name, dataset_id, filename, is_annotated, annotation, url, cluster_number, predict_class_name
     </sql>
 
     <sql id="Image_All_Columns" >
@@ -37,13 +43,16 @@
         <if test="condition.annotation != null">
             AND annotation = #{condition.annotation}
         </if>
+        <if test="condition.clusterNumber != null">
+            AND cluster_number = #{condition.clusterNumber}
+        </if>
     </sql>
 
-    <insert id="insert" parameterType="ImageDO" useGeneratedKeys="true" keyProperty="id" >
+    <insert id="insert" parameterType="ImageDO" useGeneratedKeys="true" keyProperty="id" keyColumn="id" >
         INSERT INTO image
             (<include refid="Image_All_Columns_Without_Id" />)
         VALUES
-            (now(), now(), #{uploaderName}, #{datasetId}, #{filename}, #{annotated}, #{annotation}, #{url}, #{clusterNumber})
+            (now(), now(), #{uploaderName}, #{datasetId}, #{filename}, #{annotated}, #{annotation}, #{url}, #{clusterNumber}, #{predictClassName})
         ;
 
         UPDATE dataset
@@ -124,5 +133,29 @@
         ORDER BY id
         LIMIT #{batchSize}
     </select>
+
+    <update id="updateAnnotation">
+        UPDATE image
+        SET annotation = #{annotation}, is_annotated = true, modify_time = now()
+        WHERE id = ${imageId}
+    </update>
+
+    <select id="getIdToFilenameList" resultMap="Id2FilenameResultMap">
+        SELECT id, filename
+        FROM image
+        WHERE dataset_id = #{datasetId}
+    </select>
+
+    <update id="updateClusterNumber">
+        UPDATE image
+        SET cluster_number = #{clusterNumber}, modify_time = now()
+        WHERE id = ${imageId}
+    </update>
+
+    <update id="updatePredictClassName">
+        UPDATE image
+        SET predict_class_name = #{predictClassName}, modify_time = now()
+        WHERE is_annotated = false AND dataset_id = #{datasetId} AND cluster_number = #{clusterNumber}
+    </update>
 
 </mapper>

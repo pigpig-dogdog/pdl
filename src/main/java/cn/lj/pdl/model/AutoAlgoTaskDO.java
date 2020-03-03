@@ -53,6 +53,11 @@ public class AutoAlgoTaskDO {
     private Long datasetId;
 
     /**
+     * 数据集名称
+     */
+    private String datasetName;
+
+    /**
      * 训练id列表
      */
     private String algoTrainIdList;

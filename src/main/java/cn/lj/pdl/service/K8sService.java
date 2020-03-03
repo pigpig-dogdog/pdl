@@ -2,11 +2,18 @@ package cn.lj.pdl.service;
 
 import cn.lj.pdl.constant.DeployStatus;
 import cn.lj.pdl.constant.TrainStatus;
+import cn.lj.pdl.dto.PageInfo;
+import cn.lj.pdl.dto.PageResponse;
 import cn.lj.pdl.dto.k8s.ContainerImageResponse;
 import cn.lj.pdl.dto.k8s.DeploymentResponse;
 import cn.lj.pdl.dto.k8s.JobResponse;
 import cn.lj.pdl.dto.k8s.ServiceResponse;
+import io.fabric8.kubernetes.api.model.Node;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.batch.Job;
 import org.apache.commons.lang3.tuple.Pair;
+import sun.jvm.hotspot.debugger.Page;
 
 import java.util.List;
 
@@ -23,10 +30,8 @@ public interface K8sService {
      * @param image 镜像名称
      * @param command 容器运行的命令
      * @param args 参数
-     * @param creator 创建者
-     * @param algoTrainName algoTrainDO name
      */
-    void createJob(String name, String image, String command, List<String> args, String creator, String algoTrainName);
+    void createJob(String name, String image, String command, List<String> args);
 
     /**
      * 删除 K8s Job
@@ -44,11 +49,9 @@ public interface K8sService {
      * @param containerPort 容器port
      * @param command 容器运行的命令
      * @param args 参数
-     * @param creator 创建者
-     * @param algoDeployName algoDeployDO name
      * @return String K8S Service URL
      */
-    String createDeploymentAndService(String name, Integer replicas, String image, Integer containerPort, String command, List<String> args, String creator, String algoDeployName);
+    String createDeploymentAndService(String name, Integer replicas, String image, Integer containerPort, String command, List<String> args);
 
     /**
      * 删除 K8s Deployment 和 K8s Service
@@ -130,5 +133,25 @@ public interface K8sService {
      * @return List<ContainerImageResponse>
      */
     List<ContainerImageResponse> listImages();
+
+    PageResponse<Node> nodeList(PageInfo pageInfo);
+
+    Node nodeDetail(String nodeName);
+
+//    PageResponse<Job> jobList(PageInfo pageInfo);
+//
+//    Job jobDetail(String jobName);
+//
+//    PageResponse<Deployment> deploymentList(PageInfo pageInfo);
+//
+//    Deployment deploymentDetail(String deploymentName);
+//
+//    PageResponse<io.fabric8.kubernetes.api.model.Service> serviceList(PageInfo pageInfo);
+//
+//    io.fabric8.kubernetes.api.model.Service serviceDetail(String serviceName);
+//
+//    PageResponse<Pod> podList(PageInfo pageInfo);
+//
+//    Pod podDetail(String podName);
 
 }

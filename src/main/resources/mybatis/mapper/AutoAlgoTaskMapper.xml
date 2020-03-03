@@ -10,6 +10,7 @@
         <result column="uuid"                property="uuid"              jdbcType="VARCHAR"   javaType="String" />
         <result column="algo_type"           property="algoType"          jdbcType="VARCHAR"   javaType="cn.lj.pdl.constant.AlgoType" />
         <result column="dataset_id"          property="datasetId"         jdbcType="BIGINT"    javaType="Long" />
+        <result column="dataset_name"        property="datasetName"       jdbcType="VARCHAR"   javaType="String" />
         <result column="algo_train_id_list"  property="algoTrainIdList"   jdbcType="VARCHAR"   javaType="String" />
         <result column="algo_deploy_id"      property="algoDeployId"      jdbcType="BIGINT"    javaType="Long" />
         <result column="status"              property="status"            jdbcType="VARCHAR"   javaType="cn.lj.pdl.constant.AutoAlgoTaskStatus" />
@@ -17,19 +18,19 @@
 
     <sql id="AutoAlgoTask_All_Columns_Without_Id" >
         create_time, modify_time, creator_name,
-        name, uuid, algo_type, dataset_id, algo_train_id_list, algo_deploy_id, status
+        name, uuid, algo_type, dataset_id, dataset_name, algo_train_id_list, algo_deploy_id, status
     </sql>
 
     <sql id="AutoAlgoTask_All_Columns" >
         id, <include refid="AutoAlgoTask_All_Columns_Without_Id" />
     </sql>
 
-    <insert id="insert" parameterType="AutoAlgoTaskDO" useGeneratedKeys="true" keyProperty="id">
+    <insert id="insert" parameterType="AutoAlgoTaskDO" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
         INSERT INTO auto_algo_task
             (<include refid="AutoAlgoTask_All_Columns_Without_Id" />)
         VALUES
             (now(), now(), #{creatorName},
-            #{name}, #{uuid}, #{algoType}, #{datasetId}, #{algoTrainIdList}, #{algoDeployId}, #{status})
+            #{name}, #{uuid}, #{algoType}, #{datasetId}, #{datasetName}, #{algoTrainIdList}, #{algoDeployId}, #{status})
     </insert>
 
     <select id="findById" resultMap="AutoAlgoTaskResultMap">
@@ -44,6 +45,13 @@
             <include refid="AutoAlgoTask_All_Columns" />
         FROM auto_algo_task
         WHERE status = #{status}
+    </select>
+
+    <select id="listAll" resultMap="AutoAlgoTaskResultMap">
+        SELECT
+            <include refid="AutoAlgoTask_All_Columns" />
+        FROM auto_algo_task
+        ORDER BY modify_time DESC
     </select>
 
     <update id="updateStatus">

@@ -1,6 +1,7 @@
 package cn.lj.pdl.dto.algotrain;
 
 import cn.lj.pdl.constant.Framework;
+import cn.lj.pdl.constant.Language;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -20,15 +21,19 @@ public class AlgoTrainCreateRequest {
     @NotBlank(message = "训练任务名称不可为空")
     private String name;
 
-    @ApiModelProperty(value = "深度学习框架", required = true, example = "TENSORFLOW", position = 2)
+    @ApiModelProperty(value = "语言", required = true, example = "PYTHON_3_6", position = 2)
+    @NotNull(message = "语言不可为空")
+    private Language language;
+
+    @ApiModelProperty(value = "深度学习框架", required = true, example = "TENSORFLOW", position = 3)
     @NotNull(message = "深度学习框架不可为空")
     private Framework framework;
 
-    @ApiModelProperty(value = "程序入口与参数（相对路径）", required = true, example = "python main.py --a=1 --b=2", position = 3)
+    @ApiModelProperty(value = "程序入口与参数（相对路径）", required = true, example = "python main.py --a=1 --b=2", position = 4)
     @NotBlank(message = "程序入口与参数不可为空")
     private String entryAndArgs;
 
-    @ApiModelProperty(value = "结果目录文件路径（相对路径）", required = true, example = "result/", position = 4)
+    @ApiModelProperty(value = "结果目录文件路径（相对路径）", required = true, example = "result/", position = 5)
     @NotBlank(message = "结果目录文件路径不可为空")
     private String resultDirPath;
 }

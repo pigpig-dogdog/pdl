@@ -6,25 +6,31 @@ import cn.lj.pdl.dto.PageInfo;
 import cn.lj.pdl.dto.PageResponse;
 import cn.lj.pdl.dto.dataset.BatchImagesResponse;
 import cn.lj.pdl.dto.dataset.DatasetCreateRequest;
+import cn.lj.pdl.dto.dataset.DatasetImagesNumberDetailResponse;
+import cn.lj.pdl.dto.dataset.annotation.AnnotationClassificationRequest;
+import cn.lj.pdl.dto.dataset.annotation.AnnotationDetectionRequest;
+import cn.lj.pdl.dto.dataset.annotation.DetectionBbox;
+import cn.lj.pdl.dto.dataset.annotation.ImageIdToClassName;
 import cn.lj.pdl.exception.BizException;
 import cn.lj.pdl.exception.BizExceptionEnum;
+import cn.lj.pdl.mapper.AlgoTrainMapper;
 import cn.lj.pdl.mapper.DatasetMapper;
 import cn.lj.pdl.mapper.ImageMapper;
 import cn.lj.pdl.model.DatasetDO;
 import cn.lj.pdl.model.ImageDO;
+import cn.lj.pdl.runnable.DatasetImageClusterRunnable;
 import cn.lj.pdl.runnable.UploadImagesZipRunnable;
+import cn.lj.pdl.service.AlgoTrainService;
 import cn.lj.pdl.service.DatasetService;
 import cn.lj.pdl.service.StorageService;
 import cn.lj.pdl.utils.CommonUtil;
+import com.alibaba.fastjson.JSON;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -39,19 +45,25 @@ import java.util.stream.Collectors;
 public class DatasetServiceImpl implements DatasetService {
 
     private ExecutorService executorService = new ThreadPoolExecutor(0, 50, 60L, TimeUnit.SECONDS,
-            new SynchronousQueue<>(), new ThreadFactoryBuilder().setNameFormat("uploadImagesZip-thread-%d").build());
+            new SynchronousQueue<>(), new ThreadFactoryBuilder().setNameFormat("dataset-service-thread-%d").build());
 
     private DatasetMapper datasetMapper;
     private ImageMapper imageMapper;
+    private AlgoTrainMapper algoTrainMapper;
     private StorageService storageService;
+    private AlgoTrainService algoTrainService;
 
     @Autowired
     public DatasetServiceImpl(DatasetMapper datasetMapper,
                               ImageMapper imageMapper,
-                              StorageService storageService) {
+                              AlgoTrainMapper algoTrainMapper,
+                              StorageService storageService,
+                              AlgoTrainService algoTrainService) {
         this.datasetMapper = datasetMapper;
         this.imageMapper = imageMapper;
+        this.algoTrainMapper = algoTrainMapper;
         this.storageService = storageService;
+        this.algoTrainService = algoTrainService;
     }
 
     @Override
@@ -94,6 +106,54 @@ public class DatasetServiceImpl implements DatasetService {
         }
 
         return datasetDO;
+    }
+
+    @Override
+    public DatasetImagesNumberDetailResponse imagesNumberDetail(Long id) {
+        DatasetDO datasetDO = datasetMapper.findById(id);
+
+        // id 不存在
+        if (datasetDO == null) {
+            throw new BizException(BizExceptionEnum.DATASET_NOT_EXIST);
+        }
+
+        int totalNumber = datasetDO.getImagesNumber();
+        int annotatedNumber = 0;
+        int unAnnotatedNumber = 0;
+
+        Map<String, Integer> classNameToAnnotatedNumber = null;
+        if (AlgoType.CLASSIFICATION.equals(datasetDO.getAlgoType())) {
+            classNameToAnnotatedNumber = new HashMap<>(datasetDO.getClassesNumber());
+            for (String className : datasetDO.getClassesNames().split("\\s+")) {
+                // 统计数据集某个类别已标注的图片数
+                ImageDO conditionClassAnnotated = new ImageDO();
+                conditionClassAnnotated.setDatasetId(id);
+                conditionClassAnnotated.setAnnotated(true);
+                conditionClassAnnotated.setAnnotation(className);
+                Integer classAnnotatedNumber = imageMapper.countByCondition(conditionClassAnnotated);
+                classNameToAnnotatedNumber.put(className, classAnnotatedNumber);
+
+                // 统计数据集已标注的图片数
+                annotatedNumber += classAnnotatedNumber;
+            }
+        } else {
+            // 统计数据集已标注的图片数
+            ImageDO conditionAnnotated = new ImageDO();
+            conditionAnnotated.setDatasetId(id);
+            conditionAnnotated.setAnnotated(true);
+            annotatedNumber = imageMapper.countByCondition(conditionAnnotated);
+        }
+
+        // 统计数据集未标注的图片数
+        unAnnotatedNumber = totalNumber - annotatedNumber;
+
+        // 返回
+        DatasetImagesNumberDetailResponse response = new DatasetImagesNumberDetailResponse();
+        response.setTotalNumber(totalNumber);
+        response.setAnnotatedNumber(annotatedNumber);
+        response.setUnAnnotatedNumber(unAnnotatedNumber);
+        response.setClassNameToAnnotatedNumber(classNameToAnnotatedNumber);
+        return response;
     }
 
     @Override
@@ -150,7 +210,7 @@ public class DatasetServiceImpl implements DatasetService {
     }
 
     @Override
-    public PageResponse<ImageDO> listImages(Long datasetId, Integer pageNumber, Integer pageSize, Boolean annotated) {
+    public PageResponse<ImageDO> listImages(Long datasetId, Integer pageNumber, Integer pageSize, Boolean annotated, String className) {
         // 分页信息
         PageInfo pageInfo = new PageInfo(pageNumber, pageSize);
 
@@ -158,6 +218,7 @@ public class DatasetServiceImpl implements DatasetService {
         ImageDO condition = new ImageDO();
         condition.setDatasetId(datasetId);
         condition.setAnnotated(annotated);
+        condition.setAnnotation(className);
 
         // 统计符合条件的数据行数
         Integer totalItemsNumber = imageMapper.countByCondition(condition);
@@ -196,12 +257,13 @@ public class DatasetServiceImpl implements DatasetService {
         imageDO.setAnnotation(null);
         imageDO.setUrl(url.toString());
         imageDO.setClusterNumber(null);
+        imageDO.setPredictClassName(null);
         // image表 插入行, 同时更新所属数据集的images_number++, 已经一起写在sql里面了
         imageMapper.insert(imageDO);
     }
 
     @Override
-    public void uploadImagesZip(Long datasetId, String zipFilePath, String requestUsername) {
+    public void uploadImagesZip(Long datasetId, String zipFilePath, String requestUsername, int uploadType) {
         executorService.execute(
                 new UploadImagesZipRunnable(
                         datasetMapper,
@@ -209,7 +271,8 @@ public class DatasetServiceImpl implements DatasetService {
                         storageService,
                         datasetId,
                         zipFilePath,
-                        requestUsername
+                        requestUsername,
+                        uploadType
                 )
         );
     }
@@ -255,7 +318,6 @@ public class DatasetServiceImpl implements DatasetService {
         imageMapper.delete(imageId);
     }
 
-
     private void verifyDatasetCreateRequest(DatasetCreateRequest request) {
         // 数据集名称已存在
         if (datasetMapper.existsByName(request.getName())) {
@@ -294,7 +356,6 @@ public class DatasetServiceImpl implements DatasetService {
         }
     }
 
-
     @Override
     public ImageDO getPrevImage(Long datasetId, Long currentImageId) {
         return imageMapper.getPrevImage(datasetId, currentImageId);
@@ -307,14 +368,20 @@ public class DatasetServiceImpl implements DatasetService {
 
     @Override
     public BatchImagesResponse getNextBatchUnannotatedImages(Long datasetId, Long startImageId, Integer batchSize, Integer clusterNumber) {
-
+        // 获取该数据集的类别数目 classesNumber
         Integer classesNumber = datasetMapper.findById(datasetId).getClassesNumber();
 
+        // 尝试获取 聚类编号为 clusterNumber 的图片
         List<ImageDO> list = imageMapper.getNextBatchUnannotatedImages(datasetId, startImageId, batchSize, clusterNumber);
+        // 如果结果为空，那么寻找下一个 clusterNumber
         while (list == null || list.isEmpty()) {
+            // 再一次的寻找需要将 clusterNumber 进行自增
+            // 如果当前 clusterNumber 是 classesNumber-1或者null，则将自增改为null
             clusterNumber = (clusterNumber == null || clusterNumber + 1 == classesNumber) ? null : clusterNumber + 1;
             list = imageMapper.getNextBatchUnannotatedImages(datasetId, startImageId, batchSize, clusterNumber);
             if (clusterNumber == null && list.isEmpty()) {
+                // clusterNumber 的寻找顺序是 0, 1, 2, ..., classesNumber-1, null
+                // 如果 clusterNumber 为 null，list还为空，说明已经没有未标注的数据了
                 break;
             }
         }
@@ -333,5 +400,80 @@ public class DatasetServiceImpl implements DatasetService {
         return response;
     }
 
+    @Override
+    public void annotationClassification(Long datasetId, AnnotationClassificationRequest request) {
+        DatasetDO datasetDO = datasetMapper.findById(datasetId);
+        if (datasetDO == null) {
+            throw new BizException(BizExceptionEnum.DATASET_NOT_EXIST);
+        }
+
+        List<ImageIdToClassName> list = request.getImageIdToClassNameList();
+        if (list == null) {
+            return;
+        }
+
+        for (ImageIdToClassName imageIdToClassName : list) {
+            Long imageId = imageIdToClassName.getImageId();
+            String className = imageIdToClassName.getClassName();
+            ImageDO imageDO = imageMapper.findById(imageId);
+            if (imageDO == null) {
+                throw new BizException(BizExceptionEnum.IMAGE_NOT_EXIST);
+            }
+
+            if (!imageDO.getDatasetId().equals(datasetId)) {
+                throw new BizException(BizExceptionEnum.IMAGE_NOT_BELONG_TO_THIS_DATASET);
+            }
+
+            String annotationPath = StorageConstants.getDatasetAnnotationPath(datasetDO.getUuid(), imageDO.getFilename());
+            storageService.write(annotationPath, className);
+            imageMapper.updateAnnotation(imageId, className);
+        }
+    }
+
+    @Override
+    public void annotationDetection(Long datasetId, AnnotationDetectionRequest request) {
+        DatasetDO datasetDO = datasetMapper.findById(datasetId);
+        if (datasetDO == null) {
+            throw new BizException(BizExceptionEnum.DATASET_NOT_EXIST);
+        }
+
+        Long imageId = request.getImageId();
+        ImageDO imageDO = imageMapper.findById(imageId);
+        if (imageDO == null) {
+            throw new BizException(BizExceptionEnum.IMAGE_NOT_EXIST);
+        }
+
+        List<DetectionBbox> bboxes = request.getBboxes();
+        String annotation = JSON.toJSONString(bboxes);
+        String annotationPath = StorageConstants.getDatasetAnnotationPath(datasetDO.getUuid(), imageDO.getFilename());
+        storageService.write(annotationPath, annotation);
+        imageMapper.updateAnnotation(imageId, annotation);
+    }
+
+    @Override
+    public void createImageClusterTask(Long datasetId, String requestUsername) {
+        DatasetDO datasetDO = datasetMapper.findById(datasetId);
+
+        // id 不存在
+        if (datasetDO == null) {
+            throw new BizException(BizExceptionEnum.DATASET_NOT_EXIST);
+        }
+
+        // 不是分类任务
+        if (!AlgoType.CLASSIFICATION.equals(datasetDO.getAlgoType())) {
+            throw new BizException(BizExceptionEnum.DATASET_ALGO_TYPE_IS_NOT_CLASSIFICATION);
+        }
+
+        executorService.execute(
+                new DatasetImageClusterRunnable(
+                        requestUsername,
+                        datasetDO,
+                        imageMapper,
+                        algoTrainMapper,
+                        storageService,
+                        algoTrainService
+                )
+        );
+    }
 
 }

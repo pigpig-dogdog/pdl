@@ -91,4 +91,11 @@ public interface StorageService {
      * @throws IOException IOException
      */
     String read(String path) throws IOException;
+
+    /**
+     * 拷贝文件
+     * @param src 源路径
+     * @param dst 目标路径
+     */
+    void copy(String src, String dst);
 }

@@ -7,6 +7,7 @@
         <result column="modify_time"         property="modifyTime"        jdbcType="TIMESTAMP" javaType="java.util.Date" />
         <result column="creator_name"        property="creatorName"       jdbcType="VARCHAR"   javaType="String" />
         <result column="name"                property="name"              jdbcType="VARCHAR"   javaType="String" />
+        <result column="language"            property="language"          jdbcType="VARCHAR"   javaType="cn.lj.pdl.constant.Language" />
         <result column="framework"           property="framework"         jdbcType="VARCHAR"   javaType="cn.lj.pdl.constant.Framework" />
         <result column="entry_and_args"      property="entryAndArgs"      jdbcType="VARCHAR"   javaType="String" />
         <result column="result_dir_path"     property="resultDirPath"     jdbcType="VARCHAR"   javaType="String" />
@@ -18,7 +19,7 @@
 
     <sql id="AlgoTrain_All_Columns_Without_Id" >
         create_time, modify_time, creator_name,
-        name, framework, entry_and_args,result_dir_path,uuid,
+        name, language, framework, entry_and_args, result_dir_path, uuid,
         status, code_zip_file_path, result_zip_file_url
     </sql>
 
@@ -38,19 +39,19 @@
             AND name LIKE concat('%', #{condition.name}, '%')
         </if>
         <if test="condition.framework != null">
-            AND framework = #{condition.framework}
+            AND framework LIKE concat('%', #{condition.framework}, '%')
         </if>
         <if test="condition.status != null">
-            AND classes_number = #{condition.status}
+            AND status = #{condition.status}
         </if>
     </sql>
 
-    <insert id="insert" parameterType="AlgoTrainDO" useGeneratedKeys="true" keyProperty="id" >
+    <insert id="insert" parameterType="AlgoTrainDO" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
         INSERT INTO algo_train
             (<include refid="AlgoTrain_All_Columns_Without_Id" />)
         VALUES
             (now(), now(), #{creatorName},
-             #{name}, #{framework}, #{entryAndArgs}, #{resultDirPath}, #{uuid},
+             #{name}, #{language}, #{framework}, #{entryAndArgs}, #{resultDirPath}, #{uuid},
              #{status}, #{codeZipFilePath}, #{resultZipFileUrl})
     </insert>
 

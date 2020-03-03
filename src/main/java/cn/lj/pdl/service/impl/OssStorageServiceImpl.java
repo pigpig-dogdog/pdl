@@ -3,14 +3,13 @@ package cn.lj.pdl.service.impl;
 import cn.lj.pdl.exception.BizException;
 import cn.lj.pdl.exception.BizExceptionEnum;
 import cn.lj.pdl.service.StorageService;
-import cn.lj.pdl.utils.FileUtil;
 import com.aliyun.oss.OSS;
-import com.aliyun.oss.OSSClientBuilder;
 import com.aliyun.oss.model.*;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -31,47 +30,37 @@ public class OssStorageServiceImpl implements StorageService {
     @Value("${aliyun.oss.bucket-name}")
     private String bucketName;
 
-    @Value("${aliyun.oss.endpoint}")
-    private String endpoint;
-
-    @Value("${aliyun.oss.access-key-id}")
-    private String accessKeyId;
-
-    @Value("${aliyun.oss.access-key-secret}")
-    private String accessKeySecret;
-
     @Value("${aliyun.oss.file-url-expiration}")
     private Long fileUrlExpiration;
+
+    private OSS ossClient;
+
+    @Autowired
+    public OssStorageServiceImpl(OSS ossClient) {
+        this.ossClient = ossClient;
+    }
 
     @Override
     public URL uploadFile(String path, byte[] file) {
         if (StringUtils.endsWithIgnoreCase(path, "/")) {
-            path = FileUtil.clearAllSuffixSlash(path);
+            throw new BizException(BizExceptionEnum.FILE_NAME_ENDSWITH_SLASH);
         }
-        OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
         ossClient.putObject(bucketName, path, new ByteArrayInputStream(file));
-        URL url = ossClient.generatePresignedUrl(bucketName, path, new Date(System.currentTimeMillis() + fileUrlExpiration));
-        ossClient.shutdown();
-        return url;
+        return ossClient.generatePresignedUrl(bucketName, path, new Date(System.currentTimeMillis() + fileUrlExpiration));
     }
 
     @Override
     public URL uploadLocalFile(String path, String localPath) {
         if (StringUtils.endsWithIgnoreCase(path, "/")) {
-            path = FileUtil.clearAllSuffixSlash(path);
+            throw new BizException(BizExceptionEnum.FILE_NAME_ENDSWITH_SLASH);
         }
-        OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
         ossClient.putObject(bucketName, path, new File(localPath));
-        URL url = ossClient.generatePresignedUrl(bucketName, path, new Date(System.currentTimeMillis() + fileUrlExpiration));
-        ossClient.shutdown();
-        return url;
+        return ossClient.generatePresignedUrl(bucketName, path, new Date(System.currentTimeMillis() + fileUrlExpiration));
     }
 
     @Override
     public Boolean deleteFile(String path) {
-        OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
         ossClient.deleteObject(bucketName, path);
-        ossClient.shutdown();
         return true;
     }
 
@@ -81,9 +70,7 @@ public class OssStorageServiceImpl implements StorageService {
             throw new BizException(BizExceptionEnum.DIR_NAME_NOT_ENDSWITH_SLASH);
         }
 
-        OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
         ossClient.putObject(bucketName, path, new ByteArrayInputStream(new byte[0]));
-        ossClient.shutdown();
         return true;
     }
 
@@ -95,11 +82,9 @@ public class OssStorageServiceImpl implements StorageService {
             }
         }
 
-        OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
         for (String path : paths) {
             ossClient.putObject(bucketName, path, new ByteArrayInputStream(new byte[0]));
         }
-        ossClient.shutdown();
         return true;
     }
 
@@ -115,7 +100,6 @@ public class OssStorageServiceImpl implements StorageService {
 
     @Override
     public Boolean deleteDir(String path) {
-        OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
         // 列举所有包含指定前缀的文件并删除。
         String nextMarker = null;
         ObjectListing objectListing = null;
@@ -136,32 +120,31 @@ public class OssStorageServiceImpl implements StorageService {
 
             nextMarker = objectListing.getNextMarker();
         } while (objectListing.isTruncated());
-        ossClient.shutdown();
         return true;
     }
 
     @Override
     public void write(String path, String content) {
-        OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
         ossClient.putObject(bucketName, path, new ByteArrayInputStream(content.getBytes()));
-        ossClient.shutdown();
     }
 
     @Override
     public String read(String path) throws IOException {
-        OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
         if (!ossClient.doesObjectExist(bucketName, path)) {
             return null;
         }
         OSSObject ossObject = ossClient.getObject(bucketName, path);
         String content = IOUtils.toString(ossObject.getObjectContent(), StandardCharsets.UTF_8);
         ossObject.close();
-        ossClient.shutdown();
         return content;
     }
 
+    @Override
+    public void copy(String src, String dst) {
+        ossClient.copyObject(bucketName, src, bucketName, dst);
+    }
+
     private List<String> listObjectsCore(String path, boolean recursive) {
-        OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
         List<String> ret = new ArrayList<>();
 
         String nextMarker = null;
@@ -190,7 +173,6 @@ public class OssStorageServiceImpl implements StorageService {
             nextMarker = objectListing.getNextMarker();
         } while (objectListing.isTruncated());
 
-        ossClient.shutdown();
         return ret;
     }
 }

@@ -1,6 +1,8 @@
 package cn.lj.pdl.runnable;
 
+import cn.lj.pdl.constant.Constants;
 import cn.lj.pdl.constant.StorageConstants;
+import cn.lj.pdl.dto.dataset.annotation.DetectionBbox;
 import cn.lj.pdl.exception.BizException;
 import cn.lj.pdl.exception.BizExceptionEnum;
 import cn.lj.pdl.mapper.DatasetMapper;
@@ -10,11 +12,14 @@ import cn.lj.pdl.model.ImageDO;
 import cn.lj.pdl.service.StorageService;
 import cn.lj.pdl.utils.CommonUtil;
 import cn.lj.pdl.utils.FileUtil;
+import cn.lj.pdl.utils.PascalVocXmlParser;
+import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,6 +27,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -37,19 +43,31 @@ public class UploadImagesZipRunnable implements Runnable {
     private Long datasetId;
     private String zipFilePath;
     private String requestUsername;
+    private int uploadType;
+    private DatasetDO datasetDO;
+    private List<String> classesNames;
 
     public UploadImagesZipRunnable(DatasetMapper datasetMapper,
                                    ImageMapper imageMapper,
                                    StorageService storageService,
                                    Long datasetId,
                                    String zipFilePath,
-                                   String requestUsername) {
+                                   String requestUsername,
+                                   int uploadType) {
         this.datasetMapper = datasetMapper;
         this.imageMapper = imageMapper;
         this.storageService = storageService;
         this.datasetId = datasetId;
         this.zipFilePath = zipFilePath;
         this.requestUsername = requestUsername;
+        this.uploadType = uploadType;
+
+        datasetDO = datasetMapper.findById(datasetId);
+        if (datasetDO == null) {
+            throw new BizException(BizExceptionEnum.DATASET_NOT_EXIST);
+        }
+        classesNames = Arrays.asList(datasetDO.getClassesNames().split("\\s+"));
+        log.info("classes_names:{}", classesNames);
     }
 
     @Override
@@ -69,11 +87,11 @@ public class UploadImagesZipRunnable implements Runnable {
         log.info("unzip done!");
 
         // 上传图片
-        String imagesDirPath = Paths.get(unzipDirPath, "images").toString();
-        if (Files.exists(Paths.get(imagesDirPath))) {
-            uploadImages(imagesDirPath);
+        String dataDirPath = Paths.get(unzipDirPath, "data").toString();
+        if (Files.exists(Paths.get(dataDirPath))) {
+            uploadData(dataDirPath);
         } else {
-            log.error("Directory 'images/' not found in directory '{}'.", unzipDirPath);
+            log.error("Directory 'data/' not found in directory '{}'.", unzipDirPath);
         }
         log.info("upload done!");
 
@@ -88,21 +106,29 @@ public class UploadImagesZipRunnable implements Runnable {
         }
     }
 
-    private void uploadImages(String imagesDirPath) {
-        DatasetDO datasetDO = datasetMapper.findById(datasetId);
-        if (datasetDO == null) {
-            throw new BizException(BizExceptionEnum.DATASET_NOT_EXIST);
+    private void uploadData(String dataDirPath) {
+        if (uploadType == Constants.UPLOAD_TYPE_UNANNOTATED) {
+            uploadUnAnnotatedImages(dataDirPath);
+        } else if (uploadType == Constants.UPLOAD_TYPE_CLASSIFICATION) {
+            uploadClassificationImages(dataDirPath);
+        } else if (uploadType == Constants.UPLOAD_TYPE_DETECTION) {
+            uploadDetectionImages(dataDirPath);
+        } else {
+            log.error(String.format("unknown upload type: %d", uploadType));
         }
+    }
 
-        List<String> classesNames = Arrays.asList(datasetDO.getClassesNames().split("\\s+"));
-        log.info("classes_names:{}", classesNames);
-
-        if (!Files.exists(Paths.get(imagesDirPath))) {
-            return;
+    private void uploadUnAnnotatedImages(String dataDirPath) {
+        Iterator it = FileUtils.iterateFiles(new File(dataDirPath), null, true);
+        while(it.hasNext()) {
+            File file = (File) it.next();
+            handleImageFile(file, null);
         }
+    }
 
-        // 列举类别子文件夹，比如 ['images/cat/', 'images/dog/', ...]
-        File[] classesDirList = new File(imagesDirPath).listFiles();
+    private void uploadClassificationImages(String dataDirPath) {
+        // 列举类别子文件夹，比如 ['data/cat/', 'data/dog/', ...]
+        File[] classesDirList = new File(dataDirPath).listFiles();
         if (classesDirList == null) {
             return;
         }
@@ -121,53 +147,96 @@ public class UploadImagesZipRunnable implements Runnable {
                 continue;
             }
 
-            // 列举类别子文件夹下的所有图片，比如 ['images/cat/1.jpg', 'images/cat/2.jpg', ...]
-            File[] imagesPathList = classDirPath.listFiles();
-            if (imagesPathList == null) {
+            // 列举类别子文件夹下的所有图片，比如 ['data/cat/1.jpg', 'data/cat/2.jpg', ...]
+            File[] imagesFileList = classDirPath.listFiles();
+            if (imagesFileList == null) {
                 continue;
             }
-            Arrays.sort(imagesPathList);
+            Arrays.sort(imagesFileList);
 
             // 遍历图片
-            for (File imagePath : imagesPathList) {
-                // 判别是否为图片文件
-                if (!imagePath.isFile() || !FileUtil.isImageFile(imagePath.toString())) {
-                    continue;
-                }
-
-                // 图片重命名
-                String fullPrefixPath = FilenameUtils.getFullPath(imagePath.toString());
-                String fileName = CommonUtil.generateUuid() + "." + FilenameUtils.getExtension(imagePath.toString());
-                String newImagePath = Paths.get(fullPrefixPath, fileName).toString();
-                boolean renameSuccess = imagePath.renameTo(new File(newImagePath));
-                if (!renameSuccess) {
-                    // 重命名失败，放弃上传该图片
-                    continue;
-                }
-
-                // 上传图片与标注信息
-                String datasetImagePath = StorageConstants.getDatasetImagePath(datasetDO.getUuid(), fileName);
-                String datasetAnnotationPath = StorageConstants.getDatasetAnnotationPath(datasetDO.getUuid(), fileName);
-
-                URL url = null;
-                try {
-                    url = storageService.uploadLocalFile(datasetImagePath, newImagePath);
-                    storageService.write(datasetAnnotationPath, className);
-                } catch (Exception e) {
-                    continue;
-                }
-
-                ImageDO imageDO = new ImageDO();
-                imageDO.setUploaderName(requestUsername);
-                imageDO.setDatasetId(datasetId);
-                imageDO.setFilename(fileName);
-                imageDO.setAnnotated(true);
-                imageDO.setAnnotation(className);
-                imageDO.setUrl(url.toString());
-                imageDO.setClusterNumber(null);
-                // image表 插入行, 同时更新所属数据集的images_number++, 已经一起写在sql里面了
-                imageMapper.insert(imageDO);
+            for (File imagePath : imagesFileList) {
+                handleImageFile(imagePath, className);
             }
         }
+    }
+
+    private void uploadDetectionImages(String dataDirPath) {
+        String annotationDirPath = Paths.get(dataDirPath, "annotation").toString();
+        String imagesDirPath = Paths.get(dataDirPath, "image").toString();
+        if (!Files.exists(Paths.get(annotationDirPath))) {
+            log.error(String.format("annotation dir path: '%s' not exist!", annotationDirPath));
+            return;
+        }
+        if (!Files.exists(Paths.get(imagesDirPath))) {
+            log.error(String.format("images dir path: '%s' not exist!", imagesDirPath));
+            return;
+        }
+
+        // 列举 'images/annotation' 文件夹
+        File[] annotationFileList = new File(annotationDirPath).listFiles();
+        if (annotationFileList == null) {
+            return;
+        }
+        for (File annotationFile : annotationFileList) {
+            if (!annotationFile.toString().endsWith(".xml")) {
+                continue;
+            }
+            try {
+                Pair<String, List<DetectionBbox>> parseResult = PascalVocXmlParser.parse(annotationFile.toString());
+                String imageFilename = parseResult.getLeft();
+                List<DetectionBbox> bboxes = parseResult.getRight();
+                File imagePath = Paths.get(imagesDirPath, imageFilename).toFile();
+                handleImageFile(imagePath, JSON.toJSONString(bboxes));
+            } catch (Exception e) {
+                e.printStackTrace();
+                log.error(e.toString());
+            }
+        }
+    }
+
+    private void handleImageFile(File imageFile, String annotation) {
+        // 判别是否为图片文件
+        if (!imageFile.isFile() || !FileUtil.isImageFile(imageFile.toString())) {
+            return;
+        }
+
+        // 图片重命名
+        String fullPrefixPath = FilenameUtils.getFullPath(imageFile.toString());
+        String fileName = CommonUtil.generateUuid() + "." + FilenameUtils.getExtension(imageFile.toString());
+        String newImagePath = Paths.get(fullPrefixPath, fileName).toString();
+        boolean renameSuccess = imageFile.renameTo(new File(newImagePath));
+        if (!renameSuccess) {
+            // 重命名失败，放弃上传该图片
+            log.error("rename error");
+            return;
+        }
+
+        // 上传图片与标注信息
+        String datasetImagePath = StorageConstants.getDatasetImagePath(datasetDO.getUuid(), fileName);
+        String datasetAnnotationPath = StorageConstants.getDatasetAnnotationPath(datasetDO.getUuid(), fileName);
+
+        URL url = null;
+        try {
+            url = storageService.uploadLocalFile(datasetImagePath, newImagePath);
+            if (annotation != null) {
+                storageService.write(datasetAnnotationPath, annotation);
+            }
+        } catch (Exception e) {
+            log.error(e.toString());
+            return;
+        }
+
+        ImageDO imageDO = new ImageDO();
+        imageDO.setUploaderName(requestUsername);
+        imageDO.setDatasetId(datasetId);
+        imageDO.setFilename(fileName);
+        imageDO.setAnnotated(annotation != null);
+        imageDO.setAnnotation(annotation);
+        imageDO.setUrl(url.toString());
+        imageDO.setClusterNumber(null);
+        imageDO.setPredictClassName(null);
+        // image表 插入行, 同时更新所属数据集的images_number++, 已经一起写在sql里面了
+        imageMapper.insert(imageDO);
     }
 }

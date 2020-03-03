@@ -16,9 +16,8 @@ public interface UserMapper {
      * 插入用户
      *
      * @param userDO userDO
-     * @return Long 主键
      */
-    Long insert(UserDO userDO);
+    void insert(UserDO userDO);
 
     /**
      * 删除用户

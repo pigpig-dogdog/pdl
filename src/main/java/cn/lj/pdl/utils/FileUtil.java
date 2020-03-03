@@ -1,7 +1,7 @@
 package cn.lj.pdl.utils;
 
 import org.apache.commons.io.FilenameUtils;
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -16,8 +16,8 @@ public class FileUtil {
 
     public static boolean isImageFile(String fileName) {
         return StringUtils.endsWithIgnoreCase(fileName, ".jpg") ||
-               StringUtils.endsWithIgnoreCase(fileName, ".jpeg") ||
-               StringUtils.endsWithIgnoreCase(fileName, ".png");
+                StringUtils.endsWithIgnoreCase(fileName, ".jpeg") ||
+                StringUtils.endsWithIgnoreCase(fileName, ".png");
     }
 
     public static boolean isZipFile(MultipartFile file) {
@@ -26,14 +26,6 @@ public class FileUtil {
 
     public static String getExtension(MultipartFile file) {
         return FilenameUtils.getExtension(file.getOriginalFilename());
-    }
-
-    public static String clearRedundantSuffixSlash(String path) {
-        return StringUtils.trimTrailingCharacter(path, '/') + "/";
-    }
-
-    public static String clearAllSuffixSlash(String path) {
-        return StringUtils.trimTrailingCharacter(path, '/');
     }
 
     public static String getResourcesFilePath(String relativePath) {

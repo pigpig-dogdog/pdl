@@ -43,7 +43,7 @@
         </if>
     </sql>
 
-    <insert id="insert" parameterType="DatasetDO" useGeneratedKeys="true" keyProperty="id" >
+    <insert id="insert" parameterType="DatasetDO" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
         INSERT INTO dataset
             (<include refid="Dataset_All_Columns_Without_Id" />)
         VALUES

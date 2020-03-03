@@ -1,5 +1,15 @@
 package cn.lj.pdl;
 
+import cn.lj.pdl.dto.dataset.annotation.DetectionBbox;
+import cn.lj.pdl.utils.PascalVocXmlParser;
+import com.alibaba.fastjson.JSON;
+import org.apache.commons.io.FileUtils;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 /**
  * @author luojian
  * @date 2019/11/23
@@ -10,11 +20,20 @@ public class DoSomeTest {
 //        OssStorageServiceImpl oss = new OssStorageServiceImpl();
 //        oss.setBucketName("luojian-pdl");
 //        oss.setEndpoint("oss-cn-beijing.aliyuncs.com");
-//        oss.setAccessKeyId("LTAI4FobKT2KMUmFTFy9gNBH");
-//        oss.setAccessKeySecret("KqJOjx7BpOyIN6n0Xu6GwSropI0TIc");
+//        oss.setAccessKeyId("");
+//        oss.setAccessKeySecret("");
 //
-//        List<String> list = oss.listObjects("datasets/07e873d1616047df840b019b89355792/images/");
-//        System.out.println(list.size());
+//        String src = "test/test.png";
+//        String dst = "test/copy_test/test.png";
+//        oss.copy(src, dst);
 
+//        List<DetectionBbox> bboxes = PascalVocXmlParser.parse("/Users/luojian/Desktop/vehicle_0002171.xml");
+//        System.out.println(bboxes);
+
+        Iterator it = FileUtils.iterateFiles(new File("/Users/luojian/Desktop/small"), null, true);
+        while(it.hasNext()) {
+            File file = (File) it.next();
+            System.out.println(file.getAbsolutePath());
+        }
     }
 }

@@ -7,6 +7,7 @@
         <result column="modify_time"         property="modifyTime"        jdbcType="TIMESTAMP" javaType="java.util.Date" />
         <result column="creator_name"        property="creatorName"       jdbcType="VARCHAR"   javaType="String" />
         <result column="name"                property="name"              jdbcType="VARCHAR"   javaType="String" />
+        <result column="language"            property="language"          jdbcType="VARCHAR"   javaType="cn.lj.pdl.constant.Language" />
         <result column="framework"           property="framework"         jdbcType="VARCHAR"   javaType="cn.lj.pdl.constant.Framework" />
         <result column="code_zip_file_path"   property="codeZipFilePath"   jdbcType="VARCHAR"   javaType="String" />
         <result column="main_class_path"     property="mainClassPath"     jdbcType="VARCHAR"   javaType="String" />
@@ -19,7 +20,8 @@
 
     <sql id="AlgoDeploy_All_Columns_Without_Id" >
         create_time, modify_time, creator_name,
-        name, framework, code_zip_file_path, main_class_path, uuid, status, service_url, replicas, available_replicas
+        name, language, framework, code_zip_file_path, main_class_path, uuid,
+        status, service_url, replicas, available_replicas
     </sql>
 
     <sql id="AlgoDeploy_All_Columns" >
@@ -38,19 +40,20 @@
             AND name LIKE concat('%', #{condition.name}, '%')
         </if>
         <if test="condition.framework != null">
-            AND algo_type = #{condition.framework}
+            AND framework LIKE concat('%', #{condition.framework}, '%')
         </if>
         <if test="condition.status != null">
-            AND classes_number = #{condition.status}
+            AND status = #{condition.status}
         </if>
     </sql>
 
-    <insert id="insert" parameterType="AlgoDeployDO" useGeneratedKeys="true" keyProperty="id">
+    <insert id="insert" parameterType="AlgoDeployDO" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
         INSERT INTO algo_deploy
             (<include refid="AlgoDeploy_All_Columns_Without_Id" />)
         VALUES
             (now(), now(), #{creatorName},
-            #{name}, #{framework}, #{codeZipFilePath}, #{mainClassPath}, #{uuid}, #{status}, #{serviceUrl}, #{replicas}, #{availableReplicas})
+            #{name}, #{language}, #{framework}, #{codeZipFilePath}, #{mainClassPath}, #{uuid},
+            #{status}, #{serviceUrl}, #{replicas}, #{availableReplicas})
     </insert>
 
     <select id="findById" parameterType="Long" resultMap="AlgoDeployResultMap">

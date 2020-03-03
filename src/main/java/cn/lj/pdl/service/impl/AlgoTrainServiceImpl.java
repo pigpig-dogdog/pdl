@@ -56,75 +56,46 @@ public class AlgoTrainServiceImpl implements AlgoTrainService {
         String codeZipFilePath = StorageConstants.getAlgoTrainCodeZipFilePath(uuid, codeZipFile.getOriginalFilename());
         storageService.uploadFile(codeZipFilePath, codeZipFile.getBytes());
 
-        // k8s服务
-        List<String> args = new ArrayList<String>() {{
-            add(K8sConstants.ALGO_TRAIN_ENTRY);
-            add("--user_code_oss_path=" + codeZipFilePath);
-            add("--entry_and_arg=" + request.getEntryAndArgs());
-            add("--result_dir_path=" + request.getResultDirPath());
-            add("--result_oss_path=" + StorageConstants.getAlgoTrainResultZipFilePath(uuid));
-        }};
-        k8sService.createJob(
-                uuid,
-                K8sConstants.ALGO_TRAIN_IMAGE,
-                K8sConstants.ALGO_TRAIN_COMMAND,
-                args,
-                CommonUtil.encodeChinese(requestUsername),
-                CommonUtil.encodeChinese(request.getName())
-        );
-
-        AlgoTrainDO algoTrainDO = new AlgoTrainDO();
-        algoTrainDO.setCreatorName(requestUsername);
-        algoTrainDO.setName(request.getName());
-        algoTrainDO.setFramework(request.getFramework());
-        algoTrainDO.setEntryAndArgs(request.getEntryAndArgs());
-        algoTrainDO.setResultDirPath(request.getResultDirPath());
-        algoTrainDO.setUuid(uuid);
-        algoTrainDO.setStatus(TrainStatus.RUNNING);
-        algoTrainDO.setCodeZipFilePath(codeZipFilePath);
-        algoTrainDO.setResultZipFileUrl(null);
-        algoTrainMapper.insert(algoTrainDO);
+        create(request, codeZipFilePath, uuid, requestUsername);
     }
 
     @Override
     public Long create(AlgoTrainCreateRequest request, String codeZipFilePath, String algoTrainUuid, String requestUsername) {
 
-        String uuid = (algoTrainUuid != null) ? algoTrainUuid : CommonUtil.generateUuidStartWithAlphabet();
-
         // 文件服务 创建目录
         storageService.createDirs(
                 StorageConstants.getAlgoTrainRootPath(),
-                StorageConstants.getAlgoTrainDirPath(uuid)
+                StorageConstants.getAlgoTrainDirPath(algoTrainUuid)
         );
 
         // k8s服务
         List<String> args = new ArrayList<String>() {{
             add(K8sConstants.ALGO_TRAIN_ENTRY);
             add("--user_code_oss_path=" + codeZipFilePath);
-            add("--entry_and_arg=" + request.getEntryAndArgs());
+            add("--entry_and_arg=[" + request.getEntryAndArgs() + "]");
             add("--result_dir_path=" + request.getResultDirPath());
-            add("--result_oss_path=" + StorageConstants.getAlgoTrainResultZipFilePath(uuid));
+            add("--result_oss_path=" + StorageConstants.getAlgoTrainResultZipFilePath(algoTrainUuid));
         }};
         k8sService.createJob(
-                uuid,
-                K8sConstants.ALGO_TRAIN_IMAGE,
+                algoTrainUuid,
+                K8sConstants.getAlgoTrainImageName(request.getLanguage(), request.getFramework()),
                 K8sConstants.ALGO_TRAIN_COMMAND,
-                args,
-                CommonUtil.encodeChinese(requestUsername),
-                CommonUtil.encodeChinese(request.getName())
+                args
         );
 
         AlgoTrainDO algoTrainDO = new AlgoTrainDO();
         algoTrainDO.setCreatorName(requestUsername);
         algoTrainDO.setName(request.getName());
+        algoTrainDO.setLanguage(request.getLanguage());
         algoTrainDO.setFramework(request.getFramework());
         algoTrainDO.setEntryAndArgs(request.getEntryAndArgs());
         algoTrainDO.setResultDirPath(request.getResultDirPath());
-        algoTrainDO.setUuid(uuid);
+        algoTrainDO.setUuid(algoTrainUuid);
         algoTrainDO.setStatus(TrainStatus.RUNNING);
         algoTrainDO.setCodeZipFilePath(codeZipFilePath);
         algoTrainDO.setResultZipFileUrl(null);
-        return algoTrainMapper.insert(algoTrainDO);
+        algoTrainMapper.insert(algoTrainDO);
+        return algoTrainDO.getId();
     }
 
     @Override

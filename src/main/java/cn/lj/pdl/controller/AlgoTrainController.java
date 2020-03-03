@@ -16,8 +16,8 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -56,9 +56,8 @@ public class AlgoTrainController {
     })
     public Body<PageResponse<AlgoTrainDO>> list(Integer pageNumber, Integer pageSize,
                                                 String creatorName, String name, Framework framework, TrainStatus status) {
-
-        creatorName = (creatorName == null || StringUtils.isEmpty(creatorName.trim())) ? null : creatorName.trim();
-        name = (name == null || StringUtils.isEmpty(name.trim())) ? null : name.trim();
+        creatorName = StringUtils.trimToNull(creatorName);
+        name = StringUtils.trimToNull(name);
 
         PageResponse<AlgoTrainDO> response = algoTrainService.list(pageNumber, pageSize, creatorName, name, framework, status);
         return Body.buildSuccess(response);

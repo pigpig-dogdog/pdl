@@ -50,7 +50,7 @@ public class ImageDO {
 
     /**
      * 标注信息
-     *  - 对于检测任务: 保存 xml
+     *  - 对于检测任务: 保存 json
      *  - 对于分类任务: 保存 类名
      */
     private String annotation;
@@ -66,4 +66,9 @@ public class ImageDO {
      *  - 若图片没有参与过聚类算法，取值为NULL
      */
     private Integer clusterNumber;
+
+    /**
+     * 预测的图片类别(仅分类任务有效)
+     */
+    private String predictClassName;
 }

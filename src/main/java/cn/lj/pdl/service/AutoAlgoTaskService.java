@@ -1,6 +1,9 @@
 package cn.lj.pdl.service;
 
 import cn.lj.pdl.dto.autoalgotask.AutoAlgoTaskDetailResponse;
+import cn.lj.pdl.model.AutoAlgoTaskDO;
+
+import java.util.List;
 
 /**
  * @author luojian
@@ -23,4 +26,10 @@ public interface AutoAlgoTaskService {
      * @return AutoAlgoTaskDetailResponse
      */
     AutoAlgoTaskDetailResponse detail(Long autoAlgoTaskId);
+
+    /**
+     * 自助式算法任务列表
+     * @return
+     */
+    List<AutoAlgoTaskDO> list();
 }

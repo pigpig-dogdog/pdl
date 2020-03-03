@@ -25,17 +25,18 @@ public class AutoAlgoTaskMapperTest {
 //        autoAlgoTaskDO.setUuid(CommonUtil.generateUuid());
 //        autoAlgoTaskDO.setAlgoType(AlgoType.CLASSIFICATION);
 //        autoAlgoTaskDO.setDatasetId(12L);
+//        autoAlgoTaskDO.setDatasetName("testDatasetName");
 //        autoAlgoTaskDO.setAlgoTrainIdList("18 19 20");
 //        autoAlgoTaskDO.setAlgoDeployId(null);
-//        autoAlgoTaskDO.setStatus(AutoAlgoTaskStatus.RUNNING);
+//        autoAlgoTaskDO.setStatus(AutoAlgoTaskStatus.SUCCESS);
 //        autoAlgoTaskMapper.insert(autoAlgoTaskDO);
 
 //        AutoAlgoTaskDO autoAlgoTaskDO = autoAlgoTaskMapper.findById(1L);
 //        System.out.println(autoAlgoTaskDO);
-
+//
 //        List<AutoAlgoTaskDO> list = autoAlgoTaskMapper.findByStatus(AutoAlgoTaskStatus.RUNNING);
 //        System.out.println(list);
-
+//
 //        autoAlgoTaskMapper.updateStatus(1L, AutoAlgoTaskStatus.SUCCESS);
 //        autoAlgoTaskMapper.updateAlgoDeployId(1L, 12L);
 

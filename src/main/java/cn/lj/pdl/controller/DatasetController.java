@@ -6,7 +6,12 @@ import cn.lj.pdl.dto.Body;
 import cn.lj.pdl.dto.PageResponse;
 import cn.lj.pdl.dto.dataset.BatchImagesResponse;
 import cn.lj.pdl.dto.dataset.DatasetCreateRequest;
+import cn.lj.pdl.dto.dataset.DatasetImagesNumberDetailResponse;
 import cn.lj.pdl.dto.dataset.DatasetModifyRequest;
+import cn.lj.pdl.dto.dataset.annotation.AnnotationClassificationRequest;
+import cn.lj.pdl.dto.dataset.annotation.AnnotationDetectionRequest;
+import cn.lj.pdl.dto.dataset.annotation.DetectionBbox;
+import cn.lj.pdl.dto.dataset.annotation.GetPrevOrNextImageResponse;
 import cn.lj.pdl.exception.BizException;
 import cn.lj.pdl.exception.BizExceptionEnum;
 import cn.lj.pdl.model.DatasetDO;
@@ -15,8 +20,10 @@ import cn.lj.pdl.service.DatasetService;
 import cn.lj.pdl.service.UserService;
 import cn.lj.pdl.utils.CommonUtil;
 import cn.lj.pdl.utils.FileUtil;
+import com.alibaba.fastjson.JSON;
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,6 +32,7 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 
 /**
  * @author luojian
@@ -71,6 +79,13 @@ public class DatasetController {
         return Body.buildSuccess(datasetDO);
     }
 
+    @GetMapping("/{id}/imagesNumberDetail")
+    @ApiOperation(value = "数据集图片数量详情")
+    public Body<DatasetImagesNumberDetailResponse> imagesNumberDetail(@PathVariable("id") Long id) {
+        DatasetImagesNumberDetailResponse response = datasetService.imagesNumberDetail(id);
+        return Body.buildSuccess(response);
+    }
+
     @PostMapping("/create")
     @ApiOperation(value = "创建数据集")
     @ApiResponses(value = {
@@ -110,11 +125,12 @@ public class DatasetController {
     })
     public Body<PageResponse<ImageDO>> listImages(@PathVariable("id") Long id,
                                                   Integer pageNumber, Integer pageSize,
-                                                  Boolean annotated) {
+                                                  Boolean annotated, String className) {
         pageNumber = (pageNumber == null || pageNumber < 1) ? 1 : pageNumber;
         pageSize = (pageSize == null || pageSize < 1) ? 10 : pageSize;
+        className = StringUtils.trimToNull(className);
 
-        PageResponse<ImageDO> response = datasetService.listImages(id, pageNumber, pageSize, annotated);
+        PageResponse<ImageDO> response = datasetService.listImages(id, pageNumber, pageSize, annotated, className);
         return Body.buildSuccess(response);
     }
 
@@ -145,7 +161,8 @@ public class DatasetController {
 
     @PostMapping("/{id}/uploadImagesZip")
     public Body uploadImagesZip(@PathVariable("id") Long id,
-                                @RequestParam("imagesZipFile") MultipartFile imagesZipFile) throws IOException {
+                                @RequestParam("imagesZipFile") MultipartFile imagesZipFile,
+                                @RequestParam("uploadType") int uploadType) throws IOException {
 
         if (imagesZipFile == null || imagesZipFile.isEmpty()) {
             throw new BizException(BizExceptionEnum.EMPTY_FILE);
@@ -159,52 +176,82 @@ public class DatasetController {
             throw new BizException(BizExceptionEnum.DATASET_NOT_EXIST);
         }
 
+        if (uploadType != Constants.UPLOAD_TYPE_UNANNOTATED &&
+            uploadType != Constants.UPLOAD_TYPE_CLASSIFICATION &&
+            uploadType != Constants.UPLOAD_TYPE_DETECTION) {
+            throw new BizException(BizExceptionEnum.UNKNOWN_DATA_UPLOAD_TYPE);
+        }
+
         // 先将压缩文件保存在本地，上传结束之后会删除
         byte[] bytes = imagesZipFile.getBytes();
         String zipFilePath = Paths.get(Constants.TMP_FILE_UPLOAD_FOLDER, CommonUtil.generateUuid() + ".zip").toString();
         Files.write(Paths.get(zipFilePath), bytes);
 
-        datasetService.uploadImagesZip(id, zipFilePath, userService.getCurrentRequestUsername());
+        datasetService.uploadImagesZip(id, zipFilePath, userService.getCurrentRequestUsername(), uploadType);
         return Body.buildSuccess(null);
     }
 
     @DeleteMapping("/image/{imageId}")
-    @ApiOperation(value = "删除数据集的图片【这个功能先不用做】")
+    @ApiOperation(value = "删除数据集的图片")
     public Body deleteImage(@PathVariable("imageId") Long imageId) {
         datasetService.deleteImage(imageId, userService.getCurrentRequestUsername());
         return Body.buildSuccess(null);
     }
 
-    @PostMapping("/{id}/annotation")
-    @ApiOperation(value = "图片标注")
-    public Body annotation(@PathVariable Long id) {
-        return Body.buildSuccess(null);
-    }
-
-    @GetMapping("/{id}/getPrevImage")
-    @ApiOperation(value = "获取上一张图片")
-    public Body<ImageDO> getPrev(@PathVariable("id") Long datasetId,
-                                 @RequestParam("currentImageId") Long currentImageId) {
-        ImageDO response = datasetService.getPrevImage(datasetId, currentImageId);
-        return Body.buildSuccess(response);
-    }
-
-    @GetMapping("/{id}/getNextImage")
-    @ApiOperation(value = "获取下一张图片")
-    public Body<ImageDO> getNext(@PathVariable("id") Long datasetId,
-                                 @RequestParam("currentImageId") Long currentImageId) {
-        ImageDO response = datasetService.getNextImage(datasetId, currentImageId);
-        return Body.buildSuccess(response);
-    }
-
     @GetMapping("/{id}/getNextBatchUnannotatedImages")
-    @ApiOperation(value = "获取下一批未标注的图片")
+    @ApiOperation(value = "获取下一批未标注的图片【分类】")
     public Body<BatchImagesResponse> getNextBatchUnannotatedImages(@PathVariable("id") Long datasetId,
                                                                    @RequestParam("startImageId") Long startImageId,
                                                                    @RequestParam("batchSize") Integer batchSize,
                                                                    Integer clusterNumber) {
-
         BatchImagesResponse response = datasetService.getNextBatchUnannotatedImages(datasetId, startImageId, batchSize, clusterNumber);
         return Body.buildSuccess(response);
+    }
+
+    @GetMapping("/{id}/getPrevImage")
+    @ApiOperation(value = "获取上一张图片【检测】")
+    public Body<GetPrevOrNextImageResponse> getPrev(@PathVariable("id") Long datasetId,
+                                                    @RequestParam("currentImageId") Long currentImageId) {
+        ImageDO imageDO = datasetService.getPrevImage(datasetId, currentImageId);
+        List<DetectionBbox> bboxes = JSON.parseArray(imageDO.getAnnotation(), DetectionBbox.class);
+        GetPrevOrNextImageResponse response = new GetPrevOrNextImageResponse();
+        response.setImageDO(imageDO);
+        response.setBboxes(bboxes);
+        return Body.buildSuccess(response);
+    }
+
+    @GetMapping("/{id}/getNextImage")
+    @ApiOperation(value = "获取下一张图片【检测】")
+    public Body<GetPrevOrNextImageResponse> getNext(@PathVariable("id") Long datasetId,
+                                                    @RequestParam("currentImageId") Long currentImageId) {
+        ImageDO imageDO = datasetService.getNextImage(datasetId, currentImageId);
+        List<DetectionBbox> bboxes = JSON.parseArray(imageDO.getAnnotation(), DetectionBbox.class);
+        GetPrevOrNextImageResponse response = new GetPrevOrNextImageResponse();
+        response.setImageDO(imageDO);
+        response.setBboxes(bboxes);
+        return Body.buildSuccess(response);
+    }
+
+    @PostMapping("/{datasetId}/annotationClassification")
+    @ApiOperation(value = "图片分类标注")
+    public Body annotationClassification(@PathVariable Long datasetId,
+                                        @RequestBody AnnotationClassificationRequest request) {
+        datasetService.annotationClassification(datasetId, request);
+        return Body.buildSuccess(null);
+    }
+
+    @PostMapping("/{datasetId}/annotationDetection")
+    @ApiOperation(value = "图片检测标注")
+    public Body annotationDetection(@PathVariable Long datasetId,
+                                    @RequestBody AnnotationDetectionRequest request) {
+        datasetService.annotationDetection(datasetId, request);
+        return Body.buildSuccess(null);
+    }
+
+    @PostMapping("/{id}/createImageClusterTask")
+    @ApiOperation(value = "创建图片聚类任务")
+    public Body createImageClusterTask(@PathVariable Long id) {
+        datasetService.createImageClusterTask(id, userService.getCurrentRequestUsername());
+        return Body.buildSuccess(null);
     }
 }

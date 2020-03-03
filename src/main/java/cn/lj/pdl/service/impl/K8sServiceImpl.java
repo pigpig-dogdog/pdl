@@ -3,16 +3,15 @@ package cn.lj.pdl.service.impl;
 import cn.lj.pdl.constant.DeployStatus;
 import cn.lj.pdl.constant.K8sConstants;
 import cn.lj.pdl.constant.TrainStatus;
+import cn.lj.pdl.dto.PageInfo;
+import cn.lj.pdl.dto.PageResponse;
 import cn.lj.pdl.dto.k8s.ContainerImageResponse;
 import cn.lj.pdl.dto.k8s.DeploymentResponse;
 import cn.lj.pdl.dto.k8s.JobResponse;
 import cn.lj.pdl.dto.k8s.ServiceResponse;
 import cn.lj.pdl.service.K8sService;
-import cn.lj.pdl.utils.CommonUtil;
-import io.fabric8.kubernetes.api.model.Container;
-import io.fabric8.kubernetes.api.model.ContainerImage;
-import io.fabric8.kubernetes.api.model.PodList;
-import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import cn.lj.pdl.utils.PageUtil;
+import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.batch.Job;
@@ -21,7 +20,6 @@ import io.fabric8.kubernetes.api.model.batch.JobStatus;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.DecoderException;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
@@ -41,14 +39,12 @@ public class K8sServiceImpl implements K8sService {
     private static KubernetesClient client = new DefaultKubernetesClient();
 
     @Override
-    public void createJob(String name, String image, String command, List<String> args, String creator, String algoTrainName) {
+    public void createJob(String name, String image, String command, List<String> args) {
         Job job = new JobBuilder()
                 .withApiVersion("batch/v1")
                 .withNewMetadata()
                     .withName(name)
                     .addToLabels(K8sConstants.LABEL_APP, name)
-                    .addToLabels(K8sConstants.LABEL_CREATOR, creator)
-                    .addToLabels(K8sConstants.LABEL_ALGO_TRAIN_NAME, algoTrainName)
                 .endMetadata()
                 .withNewSpec()
                     // 错误重试0次
@@ -60,6 +56,7 @@ public class K8sServiceImpl implements K8sService {
                                 .withImage(image)
                                 .withCommand(command)
                                 .withArgs(args)
+                                .withImagePullPolicy(K8sConstants.IMAGE_PULL_POLICY_NEVER)
                             .endContainer()
                             .withRestartPolicy("Never")
                         .endSpec()
@@ -76,12 +73,10 @@ public class K8sServiceImpl implements K8sService {
     }
 
     @Override
-    public String createDeploymentAndService(String name, Integer replicas, String image, Integer containerPort, String command, List<String> args, String creator, String algoDeployName) {
+    public String createDeploymentAndService(String name, Integer replicas, String image, Integer containerPort, String command, List<String> args) {
         Deployment deployment = new DeploymentBuilder()
                 .withNewMetadata()
                     .withName(name)
-                    .addToLabels(K8sConstants.LABEL_CREATOR, creator)
-                    .addToLabels(K8sConstants.LABEL_ALGO_DEPLOY_NAME, algoDeployName)
                 .endMetadata()
                 .withNewSpec()
                     .withReplicas(replicas)
@@ -98,6 +93,7 @@ public class K8sServiceImpl implements K8sService {
                                 .addNewPort()
                                     .withContainerPort(containerPort)
                                 .endPort()
+                                .withImagePullPolicy(K8sConstants.IMAGE_PULL_POLICY_NEVER)
                             .endContainer()
                         .endSpec()
                     .endTemplate()
@@ -112,8 +108,6 @@ public class K8sServiceImpl implements K8sService {
         io.fabric8.kubernetes.api.model.Service service = new ServiceBuilder()
                 .withNewMetadata()
                     .withName(name)
-                    .addToLabels(K8sConstants.LABEL_CREATOR, creator)
-                    .addToLabels(K8sConstants.LABEL_ALGO_DEPLOY_NAME, algoDeployName)
                 .endMetadata()
                 .withNewSpec()
                     .withType("NodePort")
@@ -217,17 +211,13 @@ public class K8sServiceImpl implements K8sService {
                 continue;
             }
             try {
-                String creator = CommonUtil.decodeChinese(service.getMetadata().getLabels().get(K8sConstants.LABEL_ALGO_DEPLOY_NAME));
-                String algoDeployName = CommonUtil.decodeChinese(service.getMetadata().getLabels().get(K8sConstants.LABEL_CREATOR));
                 String serviceUrl = client.services().inNamespace(K8sConstants.NAMESPACE_DEFAULT).withName(serviceName).getURL(K8sConstants.PORT_NAME).replaceAll("tcp", "http");
                 String createTime = service.getMetadata().getCreationTimestamp();
                 ServiceResponse serviceResponse = new ServiceResponse();
-                serviceResponse.setAlgoDeployName(algoDeployName);
-                serviceResponse.setCreator(creator);
                 serviceResponse.setServiceUrl(serviceUrl);
                 serviceResponse.setCreateTime(createTime);
                 list.add(serviceResponse);
-            } catch (DecoderException | NullPointerException e) {
+            } catch (NullPointerException e) {
                 log.error(e.getMessage());
             }
         }
@@ -241,8 +231,6 @@ public class K8sServiceImpl implements K8sService {
         List<Deployment> deployments = client.apps().deployments().inNamespace(K8sConstants.NAMESPACE_DEFAULT).list().getItems();
         for (Deployment deployment : deployments) {
             try {
-                String creator = CommonUtil.decodeChinese(deployment.getMetadata().getLabels().get(K8sConstants.LABEL_CREATOR));
-                String algoDeployName = CommonUtil.decodeChinese(deployment.getMetadata().getLabels().get(K8sConstants.LABEL_ALGO_DEPLOY_NAME));
                 String createTime = deployment.getMetadata().getCreationTimestamp();
                 Integer replicas = deployment.getStatus().getReplicas();
                 if (replicas == null) {
@@ -260,8 +248,6 @@ public class K8sServiceImpl implements K8sService {
                 String args = String.join(" ", container.getArgs());
 
                 DeploymentResponse deploymentResponse = new DeploymentResponse();
-                deploymentResponse.setAlgoDeployName(algoDeployName);
-                deploymentResponse.setCreator(creator);
                 deploymentResponse.setCreateTime(createTime);
                 deploymentResponse.setReplicas(replicas);
                 deploymentResponse.setAvailableReplicas(availableReplicas);
@@ -270,7 +256,7 @@ public class K8sServiceImpl implements K8sService {
                 deploymentResponse.setArgs(args);
 
                 list.add(deploymentResponse);
-            } catch (DecoderException | NullPointerException e) {
+            } catch (NullPointerException e) {
                 log.error(e.getMessage());
             }
 
@@ -287,8 +273,6 @@ public class K8sServiceImpl implements K8sService {
         for (Job job : jobs) {
 
             try {
-                String creator = CommonUtil.decodeChinese(job.getMetadata().getLabels().get(K8sConstants.LABEL_CREATOR));
-                String algoTrainName = CommonUtil.decodeChinese(job.getMetadata().getLabels().get(K8sConstants.LABEL_ALGO_TRAIN_NAME));
                 String createTime = job.getMetadata().getCreationTimestamp();
                 String endTime = null;
 
@@ -310,8 +294,6 @@ public class K8sServiceImpl implements K8sService {
                 String args = String.join(" ", container.getArgs());
 
                 JobResponse jobResponse = new JobResponse();
-                jobResponse.setAlgoTrainName(algoTrainName);
-                jobResponse.setCreator(creator);
                 jobResponse.setCreateTime(createTime);
                 jobResponse.setEndTime(endTime);
                 jobResponse.setStatus(status);
@@ -320,7 +302,7 @@ public class K8sServiceImpl implements K8sService {
                 jobResponse.setArgs(args);
 
                 list.add(jobResponse);
-            } catch (NullPointerException | DecoderException e) {
+            } catch (NullPointerException e) {
                 log.error(e.getMessage());
             }
 
@@ -353,6 +335,18 @@ public class K8sServiceImpl implements K8sService {
         return list;
     }
 
+    @Override
+    public PageResponse<Node> nodeList(PageInfo pageInfo) {
+        List<Node> nodeList = client.nodes().list().getItems();
+        return PageUtil.convertToPageResponse(nodeList, pageInfo);
+    }
+
+    @Override
+    public Node nodeDetail(String nodeName) {
+        return client.nodes().withName(nodeName).get();
+    }
+
+
     private String getPodLog(String podName) {
         return client.pods().inNamespace(K8sConstants.NAMESPACE_DEFAULT).withName(podName).getLog(true);
     }
@@ -361,6 +355,7 @@ public class K8sServiceImpl implements K8sService {
 //        podList.getItems().forEach(pod -> {
 //            System.out.println(pod.getMetadata().getName());
 //        });
-        return client.pods().inNamespace(K8sConstants.NAMESPACE_DEFAULT).withLabel(K8sConstants.LABEL_JOB_NAME, jobName).list();
+//        return client.pods().inNamespace(K8sConstants.NAMESPACE_DEFAULT).withLabel(K8sConstants.LABEL_JOB_NAME, jobName).list();
+        return null;
     }
 }

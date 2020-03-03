@@ -21,9 +21,8 @@ public interface AlgoTrainMapper {
      * 插入数据库
      *
      * @param algoTrainDO algoTrainDO
-     * @return Long 主键
      */
-    Long insert(AlgoTrainDO algoTrainDO);
+    void insert(AlgoTrainDO algoTrainDO);
 
     /**
      * 根据 id 获取 AlgoTrainDO

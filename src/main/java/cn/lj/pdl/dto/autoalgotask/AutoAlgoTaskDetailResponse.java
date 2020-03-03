@@ -6,6 +6,7 @@ import cn.lj.pdl.model.AutoAlgoTaskDO;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author luojian
@@ -15,5 +16,6 @@ import java.util.List;
 public class AutoAlgoTaskDetailResponse {
     private AutoAlgoTaskDO autoAlgoTask;
     private List<AlgoTrainDO> algoTrainList;
+    private Map<Long, String> algoTrainIdToAcc;
     private AlgoDeployDO algoDeploy;
 }

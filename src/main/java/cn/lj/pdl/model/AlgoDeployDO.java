@@ -2,6 +2,7 @@ package cn.lj.pdl.model;
 
 import cn.lj.pdl.constant.DeployStatus;
 import cn.lj.pdl.constant.Framework;
+import cn.lj.pdl.constant.Language;
 import lombok.Data;
 
 import java.util.Date;
@@ -36,6 +37,11 @@ public class AlgoDeployDO {
      * 名称
      */
     private String name;
+
+    /**
+     * 语言
+     */
+    private Language language;
 
     /**
      * 深度学习框架

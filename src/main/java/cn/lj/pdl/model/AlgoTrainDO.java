@@ -1,6 +1,7 @@
 package cn.lj.pdl.model;
 
 import cn.lj.pdl.constant.Framework;
+import cn.lj.pdl.constant.Language;
 import cn.lj.pdl.constant.TrainStatus;
 import lombok.Data;
 
@@ -36,6 +37,11 @@ public class AlgoTrainDO {
      * 名称
      */
     private String name;
+
+    /**
+     * 语言
+     */
+    private Language language;
 
     /**
      * 深度学习框架

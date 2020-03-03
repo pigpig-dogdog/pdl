@@ -25,6 +25,17 @@ public interface AlgoDeployService {
     void create(AlgoDeployCreateRequest request, MultipartFile codeZipFile, String requestUsername) throws IOException;
 
     /**
+     * 创建部署任务（算法在线化服务）
+     *
+     * @param request 请求
+     * @param codeZipFilePath 代码压缩文件OSS路径
+     * @param algoDeployUuid algoDeployUuid
+     * @param requestUsername 请求者用户名
+     * @return Long id
+     */
+    Long create(AlgoDeployCreateRequest request, String codeZipFilePath, String algoDeployUuid, String requestUsername);
+
+    /**
      * 暂停部署任务（算法在线化服务）
      *
      * @param id id

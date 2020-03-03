@@ -15,6 +15,7 @@ import cn.lj.pdl.service.AlgoDeployService;
 import cn.lj.pdl.service.K8sService;
 import cn.lj.pdl.service.StorageService;
 import cn.lj.pdl.utils.CommonUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -47,6 +48,7 @@ public class AlgoDeployServiceImpl implements AlgoDeployService {
     @Override
     public void create(AlgoDeployCreateRequest request, MultipartFile codeZipFile, String requestUsername) throws IOException {
         String uuid = CommonUtil.generateUuidStartWithAlphabet();
+
         // 文件服务 创建目录
         storageService.createDirs(
                 StorageConstants.getAlgoDeployRootPath(),
@@ -57,6 +59,18 @@ public class AlgoDeployServiceImpl implements AlgoDeployService {
         String codeZipFilePath = StorageConstants.getAlgoDeployCodeZipFilePath(uuid, codeZipFile.getOriginalFilename());
         storageService.uploadFile(codeZipFilePath, codeZipFile.getBytes());
 
+        create(request, codeZipFilePath, uuid, requestUsername);
+    }
+
+    @Override
+    public Long create(AlgoDeployCreateRequest request, String codeZipFilePath, String algoDeployUuid, String requestUsername) {
+
+        // 文件服务 创建目录
+        storageService.createDirs(
+                StorageConstants.getAlgoDeployRootPath(),
+                StorageConstants.getAlgoDeployDirPath(algoDeployUuid)
+        );
+
         // k8s服务
         List<String> args = new ArrayList<String>() {{
             add(K8sConstants.ALGO_DEPLOY_ENTRY);
@@ -64,29 +78,29 @@ public class AlgoDeployServiceImpl implements AlgoDeployService {
             add("--main_class_path=" + request.getMainClassPath());
         }};
         String serviceUrl = k8sService.createDeploymentAndService(
-                uuid,
+                algoDeployUuid,
                 request.getReplicas(),
-                K8sConstants.ALGO_DEPLOY_IMAGE,
+                K8sConstants.getAlgoDeployImageName(request.getLanguage(), request.getFramework()),
                 K8sConstants.ALGO_DEPLOY_PORT,
                 K8sConstants.ALGO_DEPLOY_COMMAND,
-                args,
-                CommonUtil.encodeChinese(requestUsername),
-                CommonUtil.encodeChinese(request.getName())
+                args
         );
 
         // 数据库
         AlgoDeployDO algoDeployDO = new AlgoDeployDO();
         algoDeployDO.setCreatorName(requestUsername);
         algoDeployDO.setName(request.getName());
+        algoDeployDO.setLanguage(request.getLanguage());
         algoDeployDO.setFramework(request.getFramework());
         algoDeployDO.setCodeZipFilePath(codeZipFilePath);
         algoDeployDO.setMainClassPath(request.getMainClassPath());
-        algoDeployDO.setUuid(uuid);
+        algoDeployDO.setUuid(algoDeployUuid);
         algoDeployDO.setStatus(DeployStatus.SERVING);
         algoDeployDO.setServiceUrl(serviceUrl);
         algoDeployDO.setReplicas(request.getReplicas());
         algoDeployDO.setAvailableReplicas(0);
         algoDeployMapper.insert(algoDeployDO);
+        return algoDeployDO.getId();
     }
 
     @Override
@@ -148,12 +162,10 @@ public class AlgoDeployServiceImpl implements AlgoDeployService {
         String serviceUrl = k8sService.createDeploymentAndService(
                 algoDeployDO.getUuid(),
                 1,
-                K8sConstants.ALGO_DEPLOY_IMAGE,
+                K8sConstants.getAlgoDeployImageName(algoDeployDO.getLanguage(), algoDeployDO.getFramework()),
                 K8sConstants.ALGO_DEPLOY_PORT,
                 K8sConstants.ALGO_DEPLOY_COMMAND,
-                args,
-                CommonUtil.encodeChinese(requestUsername),
-                CommonUtil.encodeChinese(algoDeployDO.getName())
+                args
         );
 
         // 数据库
@@ -175,6 +187,11 @@ public class AlgoDeployServiceImpl implements AlgoDeployService {
         // 不是该算法部署的创建者
         if (!Objects.equals(requestUsername, algoDeployDO.getCreatorName())) {
             throw new BizException(BizExceptionEnum.USER_IS_NOT_CREATOR);
+        }
+
+        // 已在退出状态中
+        if (algoDeployDO.getStatus().equals(DeployStatus.EXITED)) {
+            throw new BizException(BizExceptionEnum.ALGO_DEPLOY_ALREADY_IN_EXITED);
         }
 
         k8sService.scaleDeployment(algoDeployDO.getUuid(), replicas);
@@ -199,12 +216,15 @@ public class AlgoDeployServiceImpl implements AlgoDeployService {
         String codeZipFilePath = StorageConstants.getAlgoDeployCodeZipFilePath(algoDeployDO.getUuid(), codeZipFile.getOriginalFilename());
         storageService.uploadFile(codeZipFilePath, codeZipFile.getBytes());
 
+        mainClassPath = StringUtils.trimToNull(mainClassPath);
+        String finalMainClassPath = mainClassPath == null ? algoDeployDO.getMainClassPath() : mainClassPath;
+
         // k8s服务
         List<String> args = new ArrayList<String>() {{
             add(K8sConstants.ALGO_DEPLOY_ENTRY);
             add("--user_code_oss_path=" + codeZipFilePath);
             // 更新主类路径，若为null则沿用之前的主类路径
-            add("--main_class_path=" + (mainClassPath == null ? algoDeployDO.getMainClassPath() : mainClassPath));
+            add("--main_class_path=" + finalMainClassPath);
             // 为了确保可以滚动更新成功，添加一个随机的参数 update_random_uuid，以方便 K8s Deployment 滚动更新
             add("--update_random_uuid=" + CommonUtil.generateUuid());
         }};
@@ -212,8 +232,8 @@ public class AlgoDeployServiceImpl implements AlgoDeployService {
 
         // 数据库
         algoDeployMapper.updateCodeZipFilePath(algoDeployDO.getId(), codeZipFilePath);
-        if (mainClassPath != null) {
-            algoDeployMapper.updateMainClassPath(algoDeployDO.getId(), mainClassPath);
+        if (!algoDeployDO.getMainClassPath().equals(finalMainClassPath)) {
+            algoDeployMapper.updateMainClassPath(algoDeployDO.getId(), finalMainClassPath);
         }
     }
 

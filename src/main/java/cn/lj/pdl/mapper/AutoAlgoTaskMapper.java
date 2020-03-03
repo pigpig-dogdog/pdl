@@ -19,9 +19,14 @@ public interface AutoAlgoTaskMapper {
      * 插入数据库
      *
      * @param autoAlgoTaskDO autoAlgoTaskDO
-     * @return Long 主键
      */
-    Long insert(AutoAlgoTaskDO autoAlgoTaskDO);
+    void insert(AutoAlgoTaskDO autoAlgoTaskDO);
+
+    /**
+     * 返回所有数据
+     * @return List
+     */
+    List<AutoAlgoTaskDO> listAll();
 
     /**
      * 根据id 获取 AutoAlgoTaskDO

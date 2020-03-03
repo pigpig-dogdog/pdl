@@ -17,7 +17,7 @@
         id, <include refid="User_All_Columns_Without_Id" />
     </sql>
 
-    <insert id="insert" parameterType="UserDO" useGeneratedKeys="true" keyProperty="id" >
+    <insert id="insert" parameterType="UserDO" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
         INSERT INTO user
             (<include refid="User_All_Columns_Without_Id" />)
         VALUES

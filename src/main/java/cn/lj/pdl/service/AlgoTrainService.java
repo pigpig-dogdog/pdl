@@ -28,7 +28,7 @@ public interface AlgoTrainService {
      * 创建训练任务
      *
      * @param request 请求
-     * @param codeZipFilePath 代码压缩文件路径
+     * @param codeZipFilePath 代码压缩文件OSS路径
      * @param algoTrainUuid algoTrainUuid
      * @param requestUsername 请求者用户名
      * @return Long AlgoTrainDO Id
